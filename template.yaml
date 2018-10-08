@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  FeedMyTripApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: Feed My Trip API
+      StageName: Beta
+
+  TripsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-trips
+      Runtime: go1.x
+      CodeUri: ./deploy/trips.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetTrips:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips
+            Method: get
+        PostTrips:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips
+            Method: post
