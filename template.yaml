@@ -28,3 +28,25 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /trips
             Method: post
+
+  TripFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-trip
+      Runtime: go1.x
+      CodeUri: ./deploy/trip.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetTrips:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trip/{id}
+            Method: patch
+        PostTrips:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trip/{id}
+            Method: delete

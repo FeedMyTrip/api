@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetTripRouter(t *testing.T) {
+func TestGetTripRoute(t *testing.T) {
 	req := events.APIGatewayProxyRequest{
 		HTTPMethod: "GET",
 	}
@@ -19,9 +19,12 @@ func TestGetTripRouter(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 }
 
-func TestPostTripRouter(t *testing.T) {
+func TestPostTripRoute(t *testing.T) {
 	req := events.APIGatewayProxyRequest{
 		HTTPMethod: "POST",
+		Body: `{
+			"title": "Golang Test"
+		}`,
 	}
 
 	response, err := router(req)
@@ -30,7 +33,7 @@ func TestPostTripRouter(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 }
 
-func TestMethodNotAllowedRouter(t *testing.T) {
+func TestMethodNotAllowedRoute(t *testing.T) {
 	req := events.APIGatewayProxyRequest{
 		HTTPMethod: "Invalid_Method",
 	}
