@@ -10,10 +10,11 @@ import (
 
 // Trip represents a user trip
 type Trip struct {
-	TripID      string    `json:"tripId" validate:"required"`
-	Title       string    `json:"title" validate:"required"`
-	Description string    `json:"description"`
-	CreatedDate time.Time `json:"createdDate" validate:"required"`
+	TripID       string        `json:"tripId" validate:"required"`
+	Title        string        `json:"title" validate:"required"`
+	Description  string        `json:"description"`
+	CreatedDate  time.Time     `json:"createdDate" validate:"required"`
+	Participants []Participant `json:"participants"`
 }
 
 // NewTrip returns a new Trip pointer with a unique id
@@ -25,6 +26,10 @@ func NewTrip(body string) (*Trip, error) {
 	}
 	t.TripID = uuid.New().String()
 	t.CreatedDate = time.Now()
+
+	//TODO replace 000001 by the userID from Cognito
+	p := newParticipantOwner("000001")
+	t.Participants = append(t.Participants, *p)
 
 	validate := validator.New()
 	err = validate.Struct(t)

@@ -20,10 +20,10 @@ done
 
 echo "Build finished finished"
 
-cd ../
+#cd ../
 
-aws cloudformation package --template-file template.yaml --s3-bucket fmt-api-bucket --output-template-file packaged-template.yaml
+#aws cloudformation package --template-file template.yaml --s3-bucket fmt-api-bucket --output-template-file packaged-template.yaml
 
-aws cloudformation deploy --template-file packaged-template.yaml --stack-name fmt-api-stack --capabilities CAPABILITY_IAM
+#aws cloudformation deploy --template-file packaged-template.yaml --stack-name fmt-api-stack --capabilities CAPABILITY_IAM
 
-echo "FMT AWS deploy finished"
+#echo "FMT AWS deploy finished"

@@ -50,3 +50,19 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /trip/{id}
             Method: delete
+
+  ParticipantsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-participants
+      Runtime: go1.x
+      CodeUri: ./deploy/participants.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetTrips:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trip/{id}/participants
+            Method: post
