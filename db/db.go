@@ -1,7 +1,9 @@
 package db
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -12,6 +14,30 @@ import (
 const (
 	awsRegion = "sa-east-1"
 )
+
+// DeleteListItem delete the defined key item on a nested list with the index
+func DeleteListItem(table, keyLabel, keyValue, listName string, index int) error {
+	db, err := connect(awsRegion)
+	if err != nil {
+		return err
+	}
+	indexStr := strconv.Itoa(index)
+	input := &dynamodb.UpdateItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			keyLabel: {
+				S: aws.String(keyValue),
+			},
+		},
+		TableName:        aws.String(table),
+		UpdateExpression: aws.String("REMOVE " + listName + "[" + indexStr + "]"),
+	}
+
+	_, err = db.UpdateItem(input)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // DeleteItem delete the defined key item
 func DeleteItem(table, keyLabel, keyValue string) error {
@@ -48,6 +74,12 @@ func PutListItem(table, keyLabel, keyValue, listName string, data map[string]int
 		return nil, err
 	}
 
+	emptyList := []*dynamodb.AttributeValue{}
+	update[":empty_list"] = &dynamodb.AttributeValue{L: emptyList}
+
+	fmt.Println(update)
+	updateExpression := "SET " + listName + " = list_append(if_not_exists(" + listName + ", :empty_list), :" + listName + ")"
+
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: update,
 		Key: map[string]*dynamodb.AttributeValue{
@@ -57,10 +89,11 @@ func PutListItem(table, keyLabel, keyValue, listName string, data map[string]int
 		},
 		ReturnValues:     aws.String("ALL_NEW"),
 		TableName:        aws.String(table),
-		UpdateExpression: aws.String("SET " + listName + " = list_append(" + listName + ", :" + listName + ")"),
+		UpdateExpression: aws.String(updateExpression),
 	}
 
 	result, err := db.UpdateItem(input)
+	fmt.Println(err)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +119,9 @@ func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data 
 	updateExpresion := "SET"
 
 	for key, value := range update {
-		updateValues[":"+key] = value
-		updateExpresion += " " + listName + "[" + indexStr + "]." + key + " = :" + key + ","
+		valueKey := strings.Replace(key, ".", "", -1)
+		updateValues[":"+valueKey] = value
+		updateExpresion += " " + listName + "[" + indexStr + "]." + key + " = :" + valueKey + ","
 	}
 
 	updateExpresion = updateExpresion[:len(updateExpresion)-1]
@@ -129,9 +163,12 @@ func UpdateItem(table, keyLabel, keyValue string, data map[string]interface{}) (
 
 	updateExpresion := "SET"
 	for key, value := range update {
-		updateValues[":"+key] = value
-		updateExpresion += " " + key + " = :" + key + ","
+		valueKey := strings.Replace(key, ".", "", -1)
+		updateValues[":"+valueKey] = value
+		updateExpresion += " " + key + " = :" + valueKey + ","
 	}
+
+	fmt.Println(updateExpresion)
 
 	updateExpresion = updateExpresion[:len(updateExpresion)-1]
 

@@ -1,45 +1,35 @@
 package main
 
+// Basic imports
 import (
-	"net/http"
 	"testing"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestGetTripRoute(t *testing.T) {
-	req := events.APIGatewayProxyRequest{
-		HTTPMethod: "GET",
-	}
-
-	response, err := router(req)
-
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, response.StatusCode)
+// Define the suite, and absorb the built-in basic suite
+// functionality from testify - including a T() method which
+// returns the current testing context
+type FeedMyTripAPITestSuite struct {
+	suite.Suite
+	VariableThatShouldStartAtFive int
 }
 
-func TestPostTripRoute(t *testing.T) {
-	req := events.APIGatewayProxyRequest{
-		HTTPMethod: "POST",
-		Body: `{
-			"title": "Golang Test"
-		}`,
-	}
-
-	response, err := router(req)
-
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusCreated, response.StatusCode)
+// Make sure that VariableThatShouldStartAtFive is set to five
+// before each test
+func (suite *FeedMyTripAPITestSuite) SetupTest() {
+	suite.VariableThatShouldStartAtFive = 5
 }
 
-func TestMethodNotAllowedRoute(t *testing.T) {
-	req := events.APIGatewayProxyRequest{
-		HTTPMethod: "Invalid_Method",
-	}
+// All methods that begin with "Test" are run as tests within a
+// suite.
+func (suite *FeedMyTripAPITestSuite) TestExample() {
+	assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
+}
 
-	response, err := router(req)
-
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusMethodNotAllowed, response.StatusCode)
+// In order for 'go test' to run this suite, we need to create
+// a normal test function and pass our suite to suite.Run
+func TestFeedMyTripAPITestSuite(t *testing.T) {
+	suite.Run(t, new(FeedMyTripAPITestSuite))
 }

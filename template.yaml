@@ -28,41 +28,63 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /trips
             Method: post
-
-  TripFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: fmt-lambda-trip
-      Runtime: go1.x
-      CodeUri: ./deploy/trip.zip
-      Policies: AmazonDynamoDBFullAccess
-      Tracing: Active
-      Events:
-        GetTrips:
+        PatchTrip:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Path: /trip/{id}
+            Path: /trips/{id}
             Method: patch
-        PostTrips:
+        DeleteTrip:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Path: /trip/{id}
+            Path: /trips/{id}
             Method: delete
-
-  ParticipantsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: fmt-lambda-participants
-      Runtime: go1.x
-      CodeUri: ./deploy/participants.zip
-      Policies: AmazonDynamoDBFullAccess
-      Tracing: Active
-      Events:
-        GetTrips:
+        PostParticipant:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Path: /trip/{id}/participants
+            Path: /trips/{id}/participants
             Method: post
+        PatchParticipant:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/participants/{participantId}
+            Method: patch
+        DeleteParticipant:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/participants/{participantId}
+            Method: delete
+        PostInvite:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/invites
+            Method: post
+        DeleteInvite:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/invites/{inviteId}
+            Method: delete
+        PostItinerary:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/itineraries
+            Method: post
+        PatchItinerary:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/itineraries/{itineraryId}
+            Method: patch
+        DeleteItinerary:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /trips/{id}/itineraries/{itineraryId}
+            Method: delete
