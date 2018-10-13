@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -12,12 +11,13 @@ import (
 )
 
 const (
-	awsRegion = "sa-east-1"
+	//AWSRegion defines the database region on AWS
+	AWSRegion = "sa-east-1"
 )
 
 // DeleteListItem delete the defined key item on a nested list with the index
 func DeleteListItem(table, keyLabel, keyValue, listName string, index int) error {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func DeleteListItem(table, keyLabel, keyValue, listName string, index int) error
 
 // DeleteItem delete the defined key item
 func DeleteItem(table, keyLabel, keyValue string) error {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func DeleteItem(table, keyLabel, keyValue string) error {
 
 //PutListItem update nested list insertinig new object
 func PutListItem(table, keyLabel, keyValue, listName string, data map[string]interface{}) (*dynamodb.UpdateItemOutput, error) {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,6 @@ func PutListItem(table, keyLabel, keyValue, listName string, data map[string]int
 	emptyList := []*dynamodb.AttributeValue{}
 	update[":empty_list"] = &dynamodb.AttributeValue{L: emptyList}
 
-	fmt.Println(update)
 	updateExpression := "SET " + listName + " = list_append(if_not_exists(" + listName + ", :empty_list), :" + listName + ")"
 
 	input := &dynamodb.UpdateItemInput{
@@ -93,7 +92,6 @@ func PutListItem(table, keyLabel, keyValue, listName string, data map[string]int
 	}
 
 	result, err := db.UpdateItem(input)
-	fmt.Println(err)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +101,7 @@ func PutListItem(table, keyLabel, keyValue, listName string, data map[string]int
 
 //UpdateListItem update nested list item updating attributes value
 func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data map[string]interface{}) (*dynamodb.UpdateItemOutput, error) {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +147,7 @@ func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data 
 
 // UpdateItem update item attributes
 func UpdateItem(table, keyLabel, keyValue string, data map[string]interface{}) (*dynamodb.UpdateItemOutput, error) {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -167,8 +165,6 @@ func UpdateItem(table, keyLabel, keyValue string, data map[string]interface{}) (
 		updateValues[":"+valueKey] = value
 		updateExpresion += " " + key + " = :" + valueKey + ","
 	}
-
-	fmt.Println(updateExpresion)
 
 	updateExpresion = updateExpresion[:len(updateExpresion)-1]
 
@@ -194,7 +190,7 @@ func UpdateItem(table, keyLabel, keyValue string, data map[string]interface{}) (
 
 // GetAllItems return an array with all items from a difined table
 func GetAllItems(table string) (*dynamodb.ScanOutput, error) {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +209,7 @@ func GetAllItems(table string) (*dynamodb.ScanOutput, error) {
 
 //GetItem returns an object defined by the keyValue
 func GetItem(table, keyLabel, keyValue string) (*dynamodb.GetItemOutput, error) {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +232,7 @@ func GetItem(table, keyLabel, keyValue string) (*dynamodb.GetItemOutput, error) 
 
 // PutItem insert a new icon to the defined table
 func PutItem(object interface{}, table string) error {
-	db, err := connect(awsRegion)
+	db, err := connect(AWSRegion)
 	if err != nil {
 		return err
 	}
@@ -253,6 +249,58 @@ func PutItem(object interface{}, table string) error {
 
 	_, err = db.PutItem(input)
 
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//CreateTable creates a new database table
+func CreateTable(tableName, keyLabel string, rcu, wcu int64) error {
+	db, err := connect(AWSRegion)
+	if err != nil {
+		return err
+	}
+
+	input := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String(keyLabel),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String(keyLabel),
+				KeyType:       aws.String("HASH"),
+			},
+		},
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(rcu),
+			WriteCapacityUnits: aws.Int64(wcu),
+		},
+		TableName: aws.String(tableName),
+	}
+
+	_, err = db.CreateTable(input)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//DeleteTable delete database table
+func DeleteTable(tableName string) error {
+	db, err := connect(AWSRegion)
+	if err != nil {
+		return err
+	}
+
+	input := &dynamodb.DeleteTableInput{
+		TableName: aws.String(tableName),
+	}
+
+	_, err = db.DeleteTable(input)
 	if err != nil {
 		return err
 	}

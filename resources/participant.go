@@ -53,7 +53,7 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 	participants = append(participants, *p)
 	jsonMap[":participants"] = participants
 
-	_, err = db.PutListItem("Trips", "tripId", request.PathParameters["id"], "participants", jsonMap)
+	_, err = db.PutListItem(common.TripsTable, "tripId", request.PathParameters["id"], "participants", jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -90,7 +90,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 		return common.APIError(http.StatusNotFound, err)
 	}
 
-	result, err := db.UpdateListItem("Trips", "tripId", t.TripID, "participants", index, jsonMap)
+	result, err := db.UpdateListItem(common.TripsTable, "tripId", t.TripID, "participants", index, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -115,12 +115,17 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	t := Trip{}
 	t.LoadTrip(request)
+
+	if t.Participants[0].ParticipantID == request.PathParameters["participantId"] {
+		return common.APIError(http.StatusBadRequest, errors.New("trip owner can not be deleted"))
+	}
+
 	index, err := getParticipantIndex(t.Participants, request.PathParameters["participantId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
 	}
 
-	err = db.DeleteListItem("Trips", "tripId", t.TripID, "participants", index)
+	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "participants", index)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}

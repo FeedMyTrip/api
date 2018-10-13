@@ -50,7 +50,7 @@ func (i *Invite) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatew
 	invites = append(invites, *i)
 	jsonMap[":invites"] = invites
 
-	_, err = db.PutListItem("Trips", "tripId", request.PathParameters["id"], "invites", jsonMap)
+	_, err = db.PutListItem(common.TripsTable, "tripId", request.PathParameters["id"], "invites", jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -77,7 +77,7 @@ func (i *Invite) Delete(request events.APIGatewayProxyRequest) (events.APIGatewa
 		return common.APIError(http.StatusNotFound, err)
 	}
 
-	err = db.DeleteListItem("Trips", "tripId", t.TripID, "invites", index)
+	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "invites", index)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}

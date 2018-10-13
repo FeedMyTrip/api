@@ -54,7 +54,7 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	itineraries = append(itineraries, *i)
 	jsonMap[":itineraries"] = itineraries
 
-	_, err = db.PutListItem("Trips", "tripId", request.PathParameters["id"], "itineraries", jsonMap)
+	_, err = db.PutListItem(common.TripsTable, "tripId", request.PathParameters["id"], "itineraries", jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -91,7 +91,7 @@ func (i *Itinerary) Update(request events.APIGatewayProxyRequest) (events.APIGat
 		return common.APIError(http.StatusNotFound, err)
 	}
 
-	result, err := db.UpdateListItem("Trips", "tripId", t.TripID, "itineraries", index, jsonMap)
+	result, err := db.UpdateListItem(common.TripsTable, "tripId", t.TripID, "itineraries", index, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -126,7 +126,7 @@ func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 		return common.APIError(http.StatusBadRequest, errors.New("itinerary marked as principal can't be deleted"))
 	}
 
-	err = db.DeleteListItem("Trips", "tripId", t.TripID, "itineraries", index)
+	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "itineraries", index)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}

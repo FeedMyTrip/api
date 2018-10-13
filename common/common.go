@@ -7,6 +7,11 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+var (
+	//TripsTable defines the databse table to store the Trips and nested objects
+	TripsTable = "Trips"
+)
+
 //APIError generates an api error message response with the defines error and status code
 func APIError(statusCode int, err error) (events.APIGatewayProxyResponse, error) {
 	jsonBody := `{"error":"` + err.Error() + `"}`

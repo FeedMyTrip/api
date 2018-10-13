@@ -31,7 +31,7 @@ type Trip struct {
 //GetAll returns all Trips the user can view
 func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	//TODO filter to return only user Trips
-	result, err := db.GetAllItems("Trips")
+	result, err := db.GetAllItems(common.TripsTable)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -40,7 +40,7 @@ func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayP
 
 //LoadTrip get trip information from the database
 func (t *Trip) LoadTrip(request events.APIGatewayProxyRequest) error {
-	tripResult, err := db.GetItem("Trips", "tripId", request.PathParameters["id"])
+	tripResult, err := db.GetItem(common.TripsTable, "tripId", request.PathParameters["id"])
 	if err != nil {
 		return err
 	}
@@ -78,13 +78,13 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	err = db.PutItem(t, "Trips")
+	err = db.PutItem(t, common.TripsTable)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
 	// Because of a problem with the dynamodb sdk need to create a dummy invite and delete to get an empty list
-	err = db.DeleteListItem("Trips", "tripId", t.TripID, "invites", 0)
+	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "invites", 0)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -111,7 +111,7 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	jsonMap["audit.updatedBy"] = "000002"
 	jsonMap["audit.updatedDate"] = time.Now()
 
-	result, err := db.UpdateItem("Trips", "tripId", request.PathParameters["id"], jsonMap)
+	result, err := db.UpdateItem(common.TripsTable, "tripId", request.PathParameters["id"], jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -125,7 +125,7 @@ func UpdateTripAudit(request events.APIGatewayProxyRequest) error {
 	jsonMap["audit.updatedBy"] = "000002"
 	jsonMap["audit.updatedDate"] = time.Now()
 
-	_, err := db.UpdateItem("Trips", "tripId", request.PathParameters["id"], jsonMap)
+	_, err := db.UpdateItem(common.TripsTable, "tripId", request.PathParameters["id"], jsonMap)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (t *Trip) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	//TODO register in audit table this action
 	//TODO implement marked to delete
 
-	err := db.DeleteItem("Trips", "tripId", request.PathParameters["id"])
+	err := db.DeleteItem(common.TripsTable, "tripId", request.PathParameters["id"])
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
