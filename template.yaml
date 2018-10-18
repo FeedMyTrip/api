@@ -88,3 +88,43 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /trips/{id}/itineraries/{itineraryId}
             Method: delete
+
+  EventsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-events
+      Runtime: go1.x
+      CodeUri: ./deploy/events.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events
+            Method: get
+        PostEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events
+            Method: post
+        UpdateEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events/{id}
+            Method: patch
+        DeleteEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events/{id}
+            Method: delete
+        UpdateEventTranslate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events/{id}/translation
+            Method: put
