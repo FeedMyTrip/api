@@ -63,7 +63,7 @@ func DeleteItem(table, keyLabel, keyValue string) error {
 }
 
 //PutListItem update nested list insertinig new object
-func PutListItem(table, keyLabel, keyValue, listName string, data map[string]interface{}) (*dynamodb.UpdateItemOutput, error) {
+func PutListItem(table, keyLabel, keyValue, listName string, data interface{}) (*dynamodb.UpdateItemOutput, error) {
 	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func PutListItem(table, keyLabel, keyValue, listName string, data map[string]int
 }
 
 //UpdateListItem update nested list item updating attributes value
-func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data map[string]interface{}) (*dynamodb.UpdateItemOutput, error) {
+func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data interface{}) (*dynamodb.UpdateItemOutput, error) {
 	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
@@ -230,7 +230,7 @@ func GetItem(table, keyLabel, keyValue string) (*dynamodb.GetItemOutput, error) 
 	return result, nil
 }
 
-// PutItem insert a new icon to the defined table
+// PutItem insert a new object to the defined table
 func PutItem(object interface{}, table string) error {
 	db, err := connect(AWSRegion)
 	if err != nil {

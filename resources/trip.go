@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/google/uuid"
 
@@ -30,12 +29,14 @@ type Trip struct {
 
 //GetAll returns all Trips the user can view
 func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//TODO filter to return only user Trips
+	//TODO filter to filter trips
 	result, err := db.GetAllItems(common.TripsTable)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
-	return tripAPIListResponse(result.Items, http.StatusOK)
+	list := []Trip{}
+	dynamodbattribute.UnmarshalListOfMaps(result.Items, &list)
+	return common.APIResponse(list, http.StatusOK)
 }
 
 //LoadTrip get trip information from the database
@@ -89,15 +90,8 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	jsonTrip, err := json.Marshal(t)
-	if err != nil {
-		return common.APIError(http.StatusUnprocessableEntity, err)
-	}
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusCreated,
-		Body:       string(jsonTrip),
-	}, nil
+	t.Invites = []Invite{}
+	return common.APIResponse(t, http.StatusCreated)
 }
 
 //Update saves modified attributes to the database using the request information
@@ -116,7 +110,8 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return tripAPIResponse(result.Attributes, http.StatusOK)
+	dynamodbattribute.UnmarshalMap(result.Attributes, t)
+	return common.APIResponse(t, http.StatusOK)
 }
 
 //UpdateTripAudit updates only the audit attributes of a Trip using the request information
@@ -147,25 +142,4 @@ func (t *Trip) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 	}, nil
-}
-
-func tripAPIResponse(atributtes map[string]*dynamodb.AttributeValue, statuscode int) (events.APIGatewayProxyResponse, error) {
-	t := Trip{}
-	err := dynamodbattribute.UnmarshalMap(atributtes, &t)
-	if err != nil {
-		return common.APIError(http.StatusUnprocessableEntity, err)
-	}
-
-	return common.APIResponse(t, statuscode)
-}
-
-func tripAPIListResponse(items []map[string]*dynamodb.AttributeValue, statuscode int) (events.APIGatewayProxyResponse, error) {
-	tripsList := []Trip{}
-
-	err := dynamodbattribute.UnmarshalListOfMaps(items, &tripsList)
-	if err != nil {
-		return common.APIError(http.StatusInternalServerError, err)
-	}
-
-	return common.APIResponse(tripsList, statuscode)
 }
