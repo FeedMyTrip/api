@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -24,23 +25,90 @@ type FeedMyTripAPITestSuite struct {
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
-	common.TripsTable = TableName
+	common.EventsTable = TableName
 	db.CreateTable(TableName, "eventId", 1, 1)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
+func (suite *FeedMyTripAPITestSuite) Test0010SaveNewEvent() {
 	req := events.APIGatewayProxyRequest{
 		Body: `{
-			"title": "FMT - Testing suite #1",
-			"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			"translations": [
+				{
+					"code": "pt",
+					"title": "FMT - Testing suite #1",
+					"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+				}
+			]
 		}`,
 	}
 
 	event := resources.Event{}
 	response, err := event.SaveNew(req)
+	json.Unmarshal([]byte(response.Body), &event)
+	suite.eventID = event.EventID
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0020GetAllEvents() {
+	req := events.APIGatewayProxyRequest{}
+
+	event := resources.Event{}
+	response, err := event.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
+	req := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"id": suite.eventID,
+		},
+		Body: `{
+			"active": false
+		}`,
+	}
+
+	event := resources.Event{}
+	response, err := event.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0040UpdateEventTranslation() {
+	req := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"id": suite.eventID,
+		},
+		Body: `{
+			"code": "en",
+			"title": "New title in english test #001",
+			"description": "New description in english"
+		}`,
+	}
+
+	et := resources.EventTranslation{}
+	response, err := et.Save(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test1000DeleteEvent() {
+	req := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"id": suite.eventID,
+		},
+	}
+
+	event := resources.Event{}
+	response, err := event.Delete(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {
