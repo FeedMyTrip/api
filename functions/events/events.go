@@ -26,12 +26,6 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		case "PATCH":
 			return event.Update(req)
 		}
-	case "/events/{id}/translations":
-		eventTranslation := resources.EventTranslation{}
-		switch req.HTTPMethod {
-		case "PUT":
-			return eventTranslation.Save(req)
-		}
 	case "/events/{id}/schedules":
 		schedule := resources.Schedule{}
 		switch req.HTTPMethod {

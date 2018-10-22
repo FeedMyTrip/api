@@ -15,16 +15,17 @@ import (
 
 //Event represents an event on the database
 type Event struct {
-	EventID             string             `json:"eventId"`
-	Active              bool               `json:"active"`
-	MainCategoryID      string             `json:"mainCategoryId"`
-	SecondaryCategoryID string             `json:"secondaryCategoryId"`
-	CountryID           string             `json:"countryId"`
-	CityID              string             `json:"cityId"`
-	Address             string             `json:"address"`
-	Translations        []EventTranslation `json:"translations"`
-	Schedules           []Schedule         `json:"schedules"`
-	Audit               *Audit             `json:"audit"`
+	EventID             string      `json:"eventId" validate:"required"`
+	Title               Translation `json:"title" validate:"required"`
+	Description         Translation `json:"description"`
+	Active              bool        `json:"active"`
+	MainCategoryID      string      `json:"mainCategoryId"`
+	SecondaryCategoryID string      `json:"secondaryCategoryId"`
+	CountryID           string      `json:"countryId"`
+	CityID              string      `json:"cityId"`
+	Address             string      `json:"address"`
+	Schedules           []Schedule  `json:"schedules"`
+	Audit               *Audit      `json:"audit"`
 }
 
 //GetAll returns all events on the system
@@ -61,7 +62,6 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 
 	e.EventID = uuid.New().String()
 	e.Active = true
-	e.Translations = DefaultTranslations(e.Translations[0])
 	e.Audit = NewAudit(common.GetTokenUser(request))
 	s := Schedule{}
 	e.Schedules = append(e.Schedules, s)

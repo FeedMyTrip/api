@@ -33,13 +33,12 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewEvent() {
 	req := events.APIGatewayProxyRequest{
 		Body: `{
-			"translations": [
-				{
-					"code": "pt",
-					"title": "FMT - Testing suite #1",
-					"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
-				}
-			]
+			"title": {
+				"pt": "FMT - Testing suite #1"
+			},
+			"description": {
+				"pt": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			}
 		}`,
 	}
 
@@ -68,7 +67,9 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
 			"id": suite.eventID,
 		},
 		Body: `{
-			"active": false
+			"active": false,
+			"title.en": "New title in english test #001",
+			"description.en": "New description in english"
 		}`,
 	}
 
@@ -79,26 +80,7 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0040UpdateEventTranslation() {
-	req := events.APIGatewayProxyRequest{
-		PathParameters: map[string]string{
-			"id": suite.eventID,
-		},
-		Body: `{
-			"code": "en",
-			"title": "New title in english test #001",
-			"description": "New description in english"
-		}`,
-	}
-
-	et := resources.EventTranslation{}
-	response, err := et.Save(req)
-
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
-}
-
-func (suite *FeedMyTripAPITestSuite) Test0050CreateEventSchedule() {
+func (suite *FeedMyTripAPITestSuite) Test0040CreateEventSchedule() {
 	req := events.APIGatewayProxyRequest{
 		PathParameters: map[string]string{
 			"id": suite.eventID,
@@ -120,7 +102,7 @@ func (suite *FeedMyTripAPITestSuite) Test0050CreateEventSchedule() {
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0060UpdateEventSchedule() {
+func (suite *FeedMyTripAPITestSuite) Test0050UpdateEventSchedule() {
 	req := events.APIGatewayProxyRequest{
 		PathParameters: map[string]string{
 			"id":         suite.eventID,
@@ -139,7 +121,7 @@ func (suite *FeedMyTripAPITestSuite) Test0060UpdateEventSchedule() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0070DeleteEventSchedule() {
+func (suite *FeedMyTripAPITestSuite) Test0060DeleteEventSchedule() {
 	req := events.APIGatewayProxyRequest{
 		PathParameters: map[string]string{
 			"id":         suite.eventID,
