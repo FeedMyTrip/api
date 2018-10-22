@@ -128,3 +128,55 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /events/{id}/translation
             Method: put
+        PostEventSchedule:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events/{id}/schedules
+            Method: post
+        UpdateEventSchedule:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events/{id}/schedules/{scheduleId}
+            Method: patch
+        DeleteEventSchedule:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /events/{id}/schedules/{scheduleId}
+            Method: delete
+
+  CategoriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-categories
+      Runtime: go1.x
+      CodeUri: ./deploy/categories.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetCategories:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /categories
+            Method: get
+        PostCategories:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /categories
+            Method: post
+        UpdateCategory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /categories/{id}
+            Method: patch
+        DeleteCategory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /categories/{id}
+            Method: delete

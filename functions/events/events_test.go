@@ -20,8 +20,9 @@ const (
 
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
-	db      *dynamodb.DynamoDB
-	eventID string
+	db         *dynamodb.DynamoDB
+	eventID    string
+	scheduleID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
@@ -92,6 +93,62 @@ func (suite *FeedMyTripAPITestSuite) Test0040UpdateEventTranslation() {
 
 	et := resources.EventTranslation{}
 	response, err := et.Save(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0050CreateEventSchedule() {
+	req := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"id": suite.eventID,
+		},
+		Body: `{
+			"startDate": "2018-10-18T14:44:56.191296926Z",
+			"endDate": "2018-10-18T14:44:56.191296926Z",
+			"weekDays": "0111111"
+		}`,
+	}
+
+	s := resources.Schedule{}
+	response, err := s.SaveNew(req)
+	sr := resources.ScheduleResponse{}
+	json.Unmarshal([]byte(response.Body), &sr)
+	suite.scheduleID = sr.Schedule.ScheduleID
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0060UpdateEventSchedule() {
+	req := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"id":         suite.eventID,
+			"scheduleId": suite.scheduleID,
+		},
+		Body: `{
+			"annualy": true,
+			"weekDays": "0110111"
+		}`,
+	}
+
+	s := resources.Schedule{}
+	response, err := s.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0070DeleteEventSchedule() {
+	req := events.APIGatewayProxyRequest{
+		PathParameters: map[string]string{
+			"id":         suite.eventID,
+			"scheduleId": suite.scheduleID,
+		},
+	}
+
+	s := resources.Schedule{}
+	response, err := s.Delete(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)

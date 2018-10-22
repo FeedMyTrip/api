@@ -29,8 +29,8 @@ type Trip struct {
 
 //GetAll returns all Trips the user can view
 func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//TODO filter to filter trips
-	result, err := db.GetAllItems(common.TripsTable)
+	filterExpression, filterValues := common.ParseRequestFilters(request)
+	result, err := db.GetAllItems(common.TripsTable, filterExpression, filterValues)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}

@@ -24,14 +24,13 @@ type Event struct {
 	Address             string             `json:"address"`
 	Translations        []EventTranslation `json:"translations"`
 	Schedules           []Schedule         `json:"schedules"`
-	Ratings             []Rating           `json:"ratings"`
 	Audit               *Audit             `json:"audit"`
 }
 
 //GetAll returns all events on the system
 func (e *Event) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//TODO filter to filter events
-	result, err := db.GetAllItems(common.EventsTable)
+	filterExpression, filterValues := common.ParseRequestFilters(request)
+	result, err := db.GetAllItems(common.EventsTable, filterExpression, filterValues)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -64,8 +63,6 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 	e.Active = true
 	e.Translations = DefaultTranslations(e.Translations[0])
 	e.Audit = NewAudit(common.GetTokenUser(request))
-	r := Rating{}
-	e.Ratings = append(e.Ratings, r)
 	s := Schedule{}
 	e.Schedules = append(e.Schedules, s)
 
@@ -81,18 +78,11 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 	}
 
 	// Because of a problem with the dynamodb sdk need to create a dummy object and delete to get an empty list
-	err = db.DeleteListItem(common.EventsTable, "eventId", e.EventID, "ratings", 0)
-	if err != nil {
-		return common.APIError(http.StatusInternalServerError, err)
-	}
-
-	// Because of a problem with the dynamodb sdk need to create a dummy object and delete to get an empty list
 	err = db.DeleteListItem(common.EventsTable, "eventId", e.EventID, "schedules", 0)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	e.Ratings = []Rating{}
 	e.Schedules = []Schedule{}
 	return common.APIResponse(e, http.StatusCreated)
 }

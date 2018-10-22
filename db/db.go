@@ -189,7 +189,7 @@ func UpdateItem(table, keyLabel, keyValue string, data map[string]interface{}) (
 }
 
 // GetAllItems return an array with all items from a difined table
-func GetAllItems(table string) (*dynamodb.ScanOutput, error) {
+func GetAllItems(table, filterExpression string, expressionAttributeValues map[string]*dynamodb.AttributeValue) (*dynamodb.ScanOutput, error) {
 	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
@@ -197,6 +197,18 @@ func GetAllItems(table string) (*dynamodb.ScanOutput, error) {
 
 	params := &dynamodb.ScanInput{
 		TableName: aws.String(table),
+	}
+
+	if filterExpression != "" {
+		params.FilterExpression = aws.String(filterExpression)
+		params.ExpressionAttributeValues = expressionAttributeValues
+	}
+
+	if value, ok := expressionAttributeValues["limit"]; ok {
+		limit, err := strconv.ParseInt(*value.S, 10, 64)
+		if err != nil {
+			params.Limit = &limit
+		}
 	}
 
 	result, err := db.Scan(params)
