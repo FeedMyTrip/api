@@ -32,7 +32,11 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
 	req := events.APIGatewayProxyRequest{
 		Body: `{
-			"name": "Transport"
+			"title": {
+				"en": "Transports",
+				"pt": "Transportes",
+				"es": "Transportes"
+			}
 		}`,
 	}
 
@@ -66,10 +70,14 @@ func (suite *FeedMyTripAPITestSuite) Test0021GetAllActiveCategories() {
 	response, err := category.GetAll(req)
 	list := []resources.Category{}
 	json.Unmarshal([]byte(response.Body), &list)
+	active := false
+	if len(list) > 0 {
+		active = list[0].Active
+	}
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
-	assert.Equal(suite.T(), list[0].Active, true)
+	assert.Equal(suite.T(), active, true)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
@@ -78,7 +86,8 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
 			"id": suite.categoryID,
 		},
 		Body: `{
-			"active": false
+			"active": false,
+			"title.en": "Lodge"
 		}`,
 	}
 
@@ -89,6 +98,7 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
 
+/*
 func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 	req := events.APIGatewayProxyRequest{
 		PathParameters: map[string]string{
@@ -102,6 +112,7 @@ func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
+*/
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {
 	suite.Run(t, new(FeedMyTripAPITestSuite))

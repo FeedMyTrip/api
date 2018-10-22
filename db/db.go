@@ -146,7 +146,7 @@ func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data 
 }
 
 // UpdateItem update item attributes
-func UpdateItem(table, keyLabel, keyValue string, data map[string]interface{}) (*dynamodb.UpdateItemOutput, error) {
+func UpdateItem(table, keyLabel, keyValue string, data interface{}) (*dynamodb.UpdateItemOutput, error) {
 	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err

@@ -15,11 +15,11 @@ import (
 
 //Category represents a way to index the events on the system
 type Category struct {
-	CategoryID     string `json:"categoryId" validate:"required"`
-	MainCategoryID string `json:"mainCategoryId"`
-	Name           string `json:"name" validate:"required"`
-	Active         bool   `json:"active"`
-	Audit          *Audit `json:"audit"`
+	CategoryID     string      `json:"categoryId" validate:"required"`
+	MainCategoryID string      `json:"mainCategoryId"`
+	Title          Translation `json:"title" validate:"required"`
+	Active         bool        `json:"active"`
+	Audit          *Audit      `json:"audit"`
 }
 
 //GetAll returns all categories available in the database
