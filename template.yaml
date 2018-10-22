@@ -144,9 +144,9 @@ Resources:
   UserEventsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: fmt-lambda-userevents
+      Handler: fmt-lambda-userEvents
       Runtime: go1.x
-      CodeUri: ./deploy/userevents.zip
+      CodeUri: ./deploy/userEvents.zip
       Policies: AmazonDynamoDBFullAccess
       Tracing: Active
       Events:
