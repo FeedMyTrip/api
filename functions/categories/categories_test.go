@@ -98,7 +98,6 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
 
-/*
 func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 	req := events.APIGatewayProxyRequest{
 		PathParameters: map[string]string{
@@ -112,7 +111,6 @@ func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
-*/
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {
 	suite.Run(t, new(FeedMyTripAPITestSuite))
