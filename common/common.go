@@ -15,6 +15,8 @@ var (
 	TripsTable = "Trips"
 	//EventsTable defines the databse table to store the Events and nested objects
 	EventsTable = "Events"
+	//UserEventsTable defines the databse table to store the users events and nested objects
+	UserEventsTable = "UserEvents"
 	//CategoriesTable defines the databse table to store the Categories and nested objects
 	CategoriesTable = "Categories"
 )
