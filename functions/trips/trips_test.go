@@ -37,15 +37,6 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	db.CreateTable(TableName, "tripId", 1, 1)
 }
 
-func (suite *FeedMyTripAPITestSuite) TearDownSuite() {
-	/*
-		input := &dynamodb.DeleteTableInput{
-			TableName: aws.String(TableName),
-		}
-		suite.db.DeleteTable(input)
-	*/
-}
-
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
 	req := events.APIGatewayProxyRequest{
 		Body: `{

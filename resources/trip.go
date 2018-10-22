@@ -40,8 +40,8 @@ func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayP
 }
 
 //LoadTrip get trip information from the database
-func (t *Trip) LoadTrip(request events.APIGatewayProxyRequest) error {
-	tripResult, err := db.GetItem(common.TripsTable, "tripId", request.PathParameters["id"])
+func (t *Trip) LoadTrip(id string) error {
+	tripResult, err := db.GetItem(common.TripsTable, "tripId", id)
 	if err != nil {
 		return err
 	}
@@ -59,8 +59,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	//TODO replace 000001 by the userID from Cognito
-	tokenUser := "000001"
+	tokenUser := common.GetTokenUser(request)
 
 	t.TripID = uuid.New().String()
 	t.Itineraries = append(t.Itineraries, *NewDefaultItinerary(tokenUser))

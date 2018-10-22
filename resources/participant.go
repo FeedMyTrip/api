@@ -84,7 +84,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
-	t.LoadTrip(request)
+	t.LoadTrip(request.PathParameters["id"])
 	index, err := getParticipantIndex(t.Participants, request.PathParameters["participantId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
@@ -114,7 +114,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 //Delete remove a participant from the database
 func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	t := Trip{}
-	t.LoadTrip(request)
+	t.LoadTrip(request.PathParameters["id"])
 
 	if t.Participants[0].ParticipantID == request.PathParameters["participantId"] {
 		return common.APIError(http.StatusBadRequest, errors.New("trip owner can not be deleted"))
