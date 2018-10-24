@@ -160,7 +160,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Path: /categories
+            Path: /userevents
             Method: post
         UpdateUserEvent:
           Type: Api
@@ -208,3 +208,43 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /categories/{id}
             Method: delete
+
+  GeonamesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-geonames
+      Runtime: go1.x
+      CodeUri: ./deploy/geonames.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        PostGeoname:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /geonames
+            Method: post
+        UpdateGeoname:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /geonames/{id}
+            Method: patch
+        DeleteGeoname:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /geonames/{id}
+            Method: delete
+        GetCountries:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /geonames/countries
+            Method: get
+        GetCities:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /geonames/countries/{id}
+            Method: get

@@ -11,14 +11,18 @@ import (
 )
 
 var (
-	//TripsTable defines the databse table to store the Trips and nested objects
+	//TripsTable defines the database table to store the Trips and nested objects
 	TripsTable = "Trips"
-	//EventsTable defines the databse table to store the Events and nested objects
+	//EventsTable defines the database table to store the Events and nested objects
 	EventsTable = "Events"
-	//UserEventsTable defines the databse table to store the users events and nested objects
+	//UserEventsTable defines the database table to store the users events and nested objects
 	UserEventsTable = "UserEvents"
-	//CategoriesTable defines the databse table to store the Categories and nested objects
+	//CategoriesTable defines the database table to store the Categories and nested objects
 	CategoriesTable = "Categories"
+	//CountriesTable defines the database table to store the Countries and Cities
+	CountriesTable = "Countries"
+	//GeonamesTable defines the database table to store countries and cities
+	GeonamesTable = "Geonames"
 )
 
 //ParseRequestFilters process the request to parse the querystrings to dynamodb filters

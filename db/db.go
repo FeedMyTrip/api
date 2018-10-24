@@ -188,6 +188,36 @@ func UpdateItem(table, keyLabel, keyValue string, data interface{}) (*dynamodb.U
 	return result, nil
 }
 
+//Query returns items from the database defined table
+func Query(table, indexName, indexValue string) (*dynamodb.QueryOutput, error) {
+	db, err := connect(AWSRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	params := &dynamodb.QueryInput{
+		TableName: aws.String(table),
+		IndexName: aws.String(indexName + "-index"),
+		ExpressionAttributeNames: map[string]*string{
+			"#" + indexName: aws.String(indexName),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":" + indexName: {
+				S: aws.String(indexValue),
+			},
+		},
+		KeyConditionExpression: aws.String("#" + indexName + " = :" + indexName),
+		ScanIndexForward:       aws.Bool(false),
+	}
+
+	result, err := db.Query(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 // GetAllItems return an array with all items from a difined table
 func GetAllItems(table, filterExpression string, expressionAttributeValues map[string]*dynamodb.AttributeValue) (*dynamodb.ScanOutput, error) {
 	db, err := connect(AWSRegion)
@@ -211,6 +241,7 @@ func GetAllItems(table, filterExpression string, expressionAttributeValues map[s
 		}
 	}
 
+	//TODO remove scan and change for query
 	result, err := db.Scan(params)
 	if err != nil {
 		return nil, err
