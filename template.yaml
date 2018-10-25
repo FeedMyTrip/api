@@ -6,6 +6,27 @@ Resources:
     Properties:
       Name: Feed My Trip API
       StageName: Beta
+      Auth:
+        Authorizers:
+          FMTApiCognitoAuthorizer:
+            UserPoolArn: 
+              - 'arn:aws:cognito-idp:us-east-1:563319661021:userpool/us-east-1_0JwI28hrb'
+
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-auth
+      Runtime: go1.x
+      CodeUri: ./deploy/auth.zip
+      Policies: AmazonCognitoPowerUser
+      Tracing: Active
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /auth/login
+            Method: post
 
   TripsFunction:
     Type: AWS::Serverless::Function
@@ -20,72 +41,96 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips
             Method: get
         PostTrips:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips
             Method: post
         PatchTrip:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}
             Method: patch
         DeleteTrip:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}
             Method: delete
         PostParticipant:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/participants
             Method: post
         PatchParticipant:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/participants/{participantId}
             Method: patch
         DeleteParticipant:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/participants/{participantId}
             Method: delete
         PostInvite:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/invites
             Method: post
         DeleteInvite:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/invites/{inviteId}
             Method: delete
         PostItinerary:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries
             Method: post
         PatchItinerary:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}
             Method: patch
         DeleteItinerary:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}
             Method: delete
 
@@ -102,42 +147,56 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events
             Method: get
         PostEvents:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events
             Method: post
         UpdateEvent:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}
             Method: patch
         DeleteEvent:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}
             Method: delete
         PostEventSchedule:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules
             Method: post
         UpdateEventSchedule:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules/{scheduleId}
             Method: patch
         DeleteEventSchedule:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules/{scheduleId}
             Method: delete
 
@@ -154,24 +213,32 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /userevents
             Method: get
         PostUserEvents:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /userevents
             Method: post
         UpdateUserEvent:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /userevents/{id}
             Method: patch
         DeleteUserEvent:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /userevents/{id}
             Method: delete
 
@@ -188,24 +255,32 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /categories
             Method: get
         PostCategories:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /categories
             Method: post
         UpdateCategory:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /categories/{id}
             Method: patch
         DeleteCategory:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /categories/{id}
             Method: delete
 
@@ -222,29 +297,39 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /geonames
             Method: post
         UpdateGeoname:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /geonames/{id}
             Method: patch
         DeleteGeoname:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /geonames/{id}
             Method: delete
         GetCountries:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /geonames/countries
             Method: get
         GetCities:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /geonames/countries/{id}
             Method: get

@@ -16,3 +16,5 @@
 deploy/
 
 packaged-template.yaml
+
+.DS_Store

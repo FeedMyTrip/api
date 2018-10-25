@@ -12,7 +12,7 @@ for d in * ; do
 
     go build -o ./$d/fmt-lambda-$d ./$d/$d.go
 
-    zip -j ../deploy/$d.zip ./$d/fmt-lambda-$d
+    build-lambda-zip -o ../deploy/$d.zip ./$d/fmt-lambda-$d
 
     rm ./$d/fmt-lambda-$d
 
