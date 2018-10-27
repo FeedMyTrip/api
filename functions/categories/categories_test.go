@@ -21,16 +21,27 @@ const (
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
 	db         *dynamodb.DynamoDB
+	token      string
 	categoryID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	common.CategoriesTable = TableName
 	db.CreateTable(TableName, "categoryId", 1, 1)
+
+	credentials := `{
+		"username": "test",
+		"password": "test12345"
+	}`
+	user, _ := resources.LoginUser(credentials)
+	suite.token = *user.Tokens.AccessToken
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"title": {
 				"en": "Transports",
@@ -50,7 +61,11 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020GetAllCategories() {
-	req := events.APIGatewayProxyRequest{}
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+	}
 
 	category := resources.Category{}
 	response, err := category.GetAll(req)
@@ -61,6 +76,9 @@ func (suite *FeedMyTripAPITestSuite) Test0020GetAllCategories() {
 
 func (suite *FeedMyTripAPITestSuite) Test0021GetAllActiveCategories() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		QueryStringParameters: map[string]string{
 			"state": "active",
 		},
@@ -82,6 +100,9 @@ func (suite *FeedMyTripAPITestSuite) Test0021GetAllActiveCategories() {
 
 func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.categoryID,
 		},
@@ -100,6 +121,9 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
 
 func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.categoryID,
 		},

@@ -16,12 +16,12 @@ import (
 
 // Itinerary represents a way to group trip events
 type Itinerary struct {
-	ItineraryID string    `json:"itineraryID" validate:"required"`
-	Title       string    `json:"title" validate:"required"`
-	UserID      string    `json:"userId" validate:"required"`
-	StartDate   time.Time `json:"startDate" validate:"required"`
-	EndDate     time.Time `json:"endDate" validate:"required"`
-	Audit       *Audit    `json:"audit"`
+	ItineraryID string      `json:"itineraryID" validate:"required"`
+	Title       Translation `json:"title" validate:"required"`
+	UserID      string      `json:"userId" validate:"required"`
+	StartDate   time.Time   `json:"startDate" validate:"required"`
+	EndDate     time.Time   `json:"endDate" validate:"required"`
+	Audit       *Audit      `json:"audit"`
 }
 
 //ItineraryResponse returns the newly created Itinerary with the tripId
@@ -39,9 +39,8 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	//TODO replace 000001 by the userID that execute the action from Cognito
-	i.Audit = NewAudit("000001")
-	i.UserID = "000001"
+	i.Audit = NewAudit(common.GetTokenUser(request).UserID)
+	i.UserID = common.GetTokenUser(request).UserID
 	i.ItineraryID = uuid.New().String()
 	validate := validator.New()
 	err = validate.Struct(i)
@@ -81,7 +80,7 @@ func (i *Itinerary) Update(request events.APIGatewayProxyRequest) (events.APIGat
 	// TODO validate fields before update (userId, ItineraryId and auditing fileds should not be updated)
 
 	//TODO change to user id that executes the action
-	jsonMap["audit.updatedBy"] = "000002"
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
@@ -145,7 +144,9 @@ func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 func NewDefaultItinerary(userID string) *Itinerary {
 	i := &Itinerary{}
 	i.ItineraryID = uuid.New().String()
-	i.Title = "Default Itinerary"
+	i.Title.EN = "Default Itinerary"
+	i.Title.PT = "Roteiro Padrão"
+	i.Title.ES = "Itinerario Estándar"
 	i.UserID = userID
 	i.StartDate = time.Now()
 	i.EndDate = i.StartDate.AddDate(0, 0, 15)

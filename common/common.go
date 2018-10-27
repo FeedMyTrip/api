@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/gbrlsnchs/jwt"
 )
 
 var (
@@ -23,6 +25,8 @@ var (
 	CountriesTable = "Countries"
 	//GeonamesTable defines the database table to store countries and cities
 	GeonamesTable = "Geonames"
+	//HighlightsTable defines the database table to store cards grouping events and trips
+	HighlightsTable = "Highlights"
 )
 
 //ParseRequestFilters process the request to parse the querystrings to dynamodb filters
@@ -55,10 +59,28 @@ func ParseRequestFilters(request events.APIGatewayProxyRequest) (string, map[str
 	return filterExpression, filterValues
 }
 
-//GetTokenUser return the userId from the request token
-func GetTokenUser(request events.APIGatewayProxyRequest) string {
-	//TODO get user id from AWS Cognito tokengo
-	return "0000001"
+//TokenUser represents user information form the cognito token in Authorization header
+type TokenUser struct {
+	*jwt.JWT
+	UserID string   `json:"sub"`
+	Groups []string `json:"cognito:groups"`
+}
+
+//GetTokenUser return the userID and Groups from the request access token
+func GetTokenUser(request events.APIGatewayProxyRequest) *TokenUser {
+	tokenUser := &TokenUser{}
+	jwtPayload, _, _ := jwt.Parse(request.Headers["Authorization"])
+	jwt.Unmarshal(jwtPayload, tokenUser)
+	return tokenUser
+}
+
+//IsTokenUserAdmin check if token user is from the Admin group
+func IsTokenUserAdmin(request events.APIGatewayProxyRequest) bool {
+	user := GetTokenUser(request)
+	if len(user.Groups) <= 0 {
+		return false
+	}
+	return strings.Contains(strings.Join(user.Groups, ","), "Admin")
 }
 
 //APIError generates an api error message response with the defines error and status code
@@ -67,6 +89,10 @@ func APIError(statusCode int, err error) (events.APIGatewayProxyResponse, error)
 	return events.APIGatewayProxyResponse{
 		StatusCode: statusCode,
 		Body:       jsonBody,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":      "*",
+			"Access-Control-Allow-Credentials": "true",
+		},
 	}, nil
 }
 
@@ -80,5 +106,9 @@ func APIResponse(object interface{}, statuscode int) (events.APIGatewayProxyResp
 	return events.APIGatewayProxyResponse{
 		StatusCode: statuscode,
 		Body:       string(jsonObject),
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":      "*",
+			"Access-Control-Allow-Credentials": "true",
+		},
 	}, nil
 }

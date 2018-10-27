@@ -21,6 +21,7 @@ const (
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
 	db         *dynamodb.DynamoDB
+	token      string
 	eventID    string
 	scheduleID string
 }
@@ -28,10 +29,20 @@ type FeedMyTripAPITestSuite struct {
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	common.EventsTable = TableName
 	db.CreateTable(TableName, "eventId", 1, 1)
+
+	credentials := `{
+		"username": "test",
+		"password": "test12345"
+	}`
+	user, _ := resources.LoginUser(credentials)
+	suite.token = *user.Tokens.AccessToken
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewEvent() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"title": {
 				"pt": "FMT - Testing suite #1"
@@ -52,7 +63,11 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewEvent() {
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020GetAllEvents() {
-	req := events.APIGatewayProxyRequest{}
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+	}
 
 	event := resources.Event{}
 	response, err := event.GetAll(req)
@@ -63,6 +78,9 @@ func (suite *FeedMyTripAPITestSuite) Test0020GetAllEvents() {
 
 func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.eventID,
 		},
@@ -82,6 +100,9 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
 
 func (suite *FeedMyTripAPITestSuite) Test0040CreateEventSchedule() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.eventID,
 		},
@@ -104,6 +125,9 @@ func (suite *FeedMyTripAPITestSuite) Test0040CreateEventSchedule() {
 
 func (suite *FeedMyTripAPITestSuite) Test0050UpdateEventSchedule() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id":         suite.eventID,
 			"scheduleId": suite.scheduleID,
@@ -123,6 +147,9 @@ func (suite *FeedMyTripAPITestSuite) Test0050UpdateEventSchedule() {
 
 func (suite *FeedMyTripAPITestSuite) Test0060DeleteEventSchedule() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id":         suite.eventID,
 			"scheduleId": suite.scheduleID,
@@ -138,6 +165,9 @@ func (suite *FeedMyTripAPITestSuite) Test0060DeleteEventSchedule() {
 
 func (suite *FeedMyTripAPITestSuite) Test1000DeleteEvent() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.eventID,
 		},

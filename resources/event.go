@@ -2,6 +2,7 @@ package resources
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -22,6 +23,7 @@ type Event struct {
 	MainCategoryID      string      `json:"mainCategoryId"`
 	SecondaryCategoryID string      `json:"secondaryCategoryId"`
 	CountryID           string      `json:"countryId"`
+	RegionID            string      `json:"regionId"`
 	CityID              string      `json:"cityId"`
 	Address             string      `json:"address"`
 	Schedules           []Schedule  `json:"schedules"`
@@ -31,7 +33,7 @@ type Event struct {
 //GetAll returns all events on the system
 func (e *Event) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	filterExpression, filterValues := common.ParseRequestFilters(request)
-	result, err := db.GetAllItems(common.EventsTable, filterExpression, filterValues)
+	result, err := db.Scan(common.EventsTable, filterExpression, filterValues)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -55,6 +57,10 @@ func (e *Event) Load(request events.APIGatewayProxyRequest) error {
 
 //SaveNew creates a new event on the system
 func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
 	err := json.Unmarshal([]byte(request.Body), e)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
@@ -62,7 +68,7 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 
 	e.EventID = uuid.New().String()
 	e.Active = true
-	e.Audit = NewAudit(common.GetTokenUser(request))
+	e.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	s := Schedule{}
 	e.Schedules = append(e.Schedules, s)
 
@@ -89,13 +95,17 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 
 //Update modify an event attributes
 func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
 	//TODO Check if request body is valid
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(request.Body), &jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
-	jsonMap["audit.updatedBy"] = common.GetTokenUser(request)
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	result, err := db.UpdateItem(common.EventsTable, "eventId", request.PathParameters["id"], jsonMap)
@@ -109,8 +119,9 @@ func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGateway
 
 //Delete remove an event
 func (e *Event) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-
-	//TODO validate if user is scenario owner, participant admin or trip owner
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	//TODO register in audit table this action
 	//TODO implement marked to delete
 
@@ -127,7 +138,7 @@ func (e *Event) Delete(request events.APIGatewayProxyRequest) (events.APIGateway
 //UpdateEventAudit updates only the audit attributes of a Event using the request information
 func UpdateEventAudit(request events.APIGatewayProxyRequest) error {
 	jsonMap := make(map[string]interface{})
-	jsonMap["audit.updatedBy"] = common.GetTokenUser(request)
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	_, err := db.UpdateItem(common.EventsTable, "eventId", request.PathParameters["id"], jsonMap)

@@ -34,9 +34,8 @@ func (i *Invite) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatew
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	//TODO replace 000001 by the userID that execute the action from Cognito
 	i.InviteID = uuid.New().String()
-	i.CreatedBy = "000001"
+	i.CreatedBy = common.GetTokenUser(request).UserID
 	i.CreatedDate = time.Now()
 
 	validate := validator.New()
@@ -76,6 +75,8 @@ func (i *Invite) Delete(request events.APIGatewayProxyRequest) (events.APIGatewa
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
 	}
+
+	//TODO: check if user is invite owner or trip admin
 
 	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "invites", index)
 	if err != nil {

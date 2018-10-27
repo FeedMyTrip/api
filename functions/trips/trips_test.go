@@ -24,6 +24,7 @@ const (
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
 	db                   *dynamodb.DynamoDB
+	token                string
 	tripID               string
 	participantID        string
 	participantOwnerID   string
@@ -35,10 +36,20 @@ type FeedMyTripAPITestSuite struct {
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	common.TripsTable = TableName
 	db.CreateTable(TableName, "tripId", 1, 1)
+
+	credentials := `{
+		"username": "test",
+		"password": "test12345"
+	}`
+	user, _ := resources.LoginUser(credentials)
+	suite.token = *user.Tokens.AccessToken
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"title": "FMT - Testing suite #1",
 			"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
@@ -58,6 +69,9 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
 
 func (suite *FeedMyTripAPITestSuite) Test0020SaveNewTripEmptyTitleFail() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
 		}`,
@@ -71,7 +85,11 @@ func (suite *FeedMyTripAPITestSuite) Test0020SaveNewTripEmptyTitleFail() {
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0030GetAllTrips() {
-	req := events.APIGatewayProxyRequest{}
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+	}
 
 	trip := resources.Trip{}
 	response, err := trip.GetAll(req)
@@ -82,6 +100,9 @@ func (suite *FeedMyTripAPITestSuite) Test0030GetAllTrips() {
 
 func (suite *FeedMyTripAPITestSuite) Test0040UpdateTrip() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"description": "Edited description using patch: Loren ipsum ea est atqui iisque placerat, est nobis videre."
 		}`,
@@ -99,6 +120,9 @@ func (suite *FeedMyTripAPITestSuite) Test0040UpdateTrip() {
 
 func (suite *FeedMyTripAPITestSuite) Test0050SaveNewParticipant() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"userId": "000005",
 			"userRole": "Viewer"
@@ -119,6 +143,9 @@ func (suite *FeedMyTripAPITestSuite) Test0050SaveNewParticipant() {
 
 func (suite *FeedMyTripAPITestSuite) Test0060UpdateParticipant() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"userRole": "Editor"
 		}`,
@@ -137,6 +164,9 @@ func (suite *FeedMyTripAPITestSuite) Test0060UpdateParticipant() {
 
 func (suite *FeedMyTripAPITestSuite) Test0070DeleteParticipantOwnerFail() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id":            suite.tripID,
 			"participantId": suite.participantOwnerID,
@@ -152,6 +182,9 @@ func (suite *FeedMyTripAPITestSuite) Test0070DeleteParticipantOwnerFail() {
 
 func (suite *FeedMyTripAPITestSuite) Test0080DeleteParticipant() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id":            suite.tripID,
 			"participantId": suite.participantID,
@@ -167,6 +200,9 @@ func (suite *FeedMyTripAPITestSuite) Test0080DeleteParticipant() {
 
 func (suite *FeedMyTripAPITestSuite) Test0090SaveNewInvite() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"email": "teste@email.com"
 		}`,
@@ -186,6 +222,9 @@ func (suite *FeedMyTripAPITestSuite) Test0090SaveNewInvite() {
 
 func (suite *FeedMyTripAPITestSuite) Test0100DeleteInvite() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id":       suite.tripID,
 			"inviteId": suite.inviteID,
@@ -201,6 +240,9 @@ func (suite *FeedMyTripAPITestSuite) Test0100DeleteInvite() {
 
 func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"title": "Europe 2019 - France and Italy",
 			"userId": "000001",
@@ -223,6 +265,9 @@ func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
 
 func (suite *FeedMyTripAPITestSuite) Test0120UpdateItinerary() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"startDate": "2018-11-12T02:46:13.164772488Z",
 			"endDate": "2018-11-27T02:46:13.164772488Z"
@@ -242,6 +287,9 @@ func (suite *FeedMyTripAPITestSuite) Test0120UpdateItinerary() {
 
 func (suite *FeedMyTripAPITestSuite) Test0130DeletePrincipalItineraryFail() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"startDate": "2018-11-12T02:46:13.164772488Z",
 			"endDate": "2018-11-27T02:46:13.164772488Z"
@@ -261,6 +309,9 @@ func (suite *FeedMyTripAPITestSuite) Test0130DeletePrincipalItineraryFail() {
 
 func (suite *FeedMyTripAPITestSuite) Test0130DeleteItinerary() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"startDate": "2018-11-12T02:46:13.164772488Z",
 			"endDate": "2018-11-27T02:46:13.164772488Z"
@@ -280,6 +331,9 @@ func (suite *FeedMyTripAPITestSuite) Test0130DeleteItinerary() {
 
 func (suite *FeedMyTripAPITestSuite) Test1000DeleteTrip() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.tripID,
 		},

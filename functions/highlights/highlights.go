@@ -9,17 +9,23 @@ import (
 )
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	auth := resources.Auth{}
+	highlight := resources.Highlight{}
 	switch req.Resource {
-	case "/auth/login":
+	case "/highlights":
 		switch req.HTTPMethod {
 		case "POST":
-			return auth.Login(req)
+			return highlight.SaveNew(req)
+		case "GET":
+			return highlight.GetAll(req)
 		}
-	case "/auth/refresh":
+	case "/highlights/{id}":
 		switch req.HTTPMethod {
 		case "GET":
-			return auth.Refresh(req)
+			return highlight.GetItem(req)
+		case "DELETE":
+			return highlight.Delete(req)
+		case "PATCH":
+			return highlight.Update(req)
 		}
 	}
 

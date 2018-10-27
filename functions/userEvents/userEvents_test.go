@@ -21,16 +21,27 @@ const (
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
 	db          *dynamodb.DynamoDB
+	token       string
 	userEventID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	common.UserEventsTable = TableName
 	db.CreateTable(TableName, "userEventId", 1, 1)
+
+	credentials := `{
+		"username": "test",
+		"password": "test12345"
+	}`
+	user, _ := resources.LoginUser(credentials)
+	suite.token = *user.Tokens.AccessToken
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewUserEvent() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"title": "FMT - Testing user event #1",
 			"itineraryID": "0000001",
@@ -49,7 +60,11 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewUserEvent() {
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020GetAllUserEvent() {
-	req := events.APIGatewayProxyRequest{}
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+	}
 
 	userEvent := resources.UserEvent{}
 	response, err := userEvent.GetAll(req)
@@ -60,6 +75,9 @@ func (suite *FeedMyTripAPITestSuite) Test0020GetAllUserEvent() {
 
 func (suite *FeedMyTripAPITestSuite) Test0030UpdateUserEvent() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.userEventID,
 		},
@@ -77,6 +95,9 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateUserEvent() {
 
 func (suite *FeedMyTripAPITestSuite) Test0040DeleteUserEvent() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.userEventID,
 		},

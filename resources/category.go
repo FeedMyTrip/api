@@ -2,6 +2,7 @@ package resources
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -25,7 +26,7 @@ type Category struct {
 //GetAll returns all categories available in the database
 func (c *Category) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	filterExpression, filterValues := common.ParseRequestFilters(request)
-	result, err := db.GetAllItems(common.CategoriesTable, filterExpression, filterValues)
+	result, err := db.Scan(common.CategoriesTable, filterExpression, filterValues)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -36,13 +37,17 @@ func (c *Category) GetAll(request events.APIGatewayProxyRequest) (events.APIGate
 
 //SaveNew creates a new category
 func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
 	err := json.Unmarshal([]byte(request.Body), c)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
 	c.CategoryID = uuid.New().String()
-	c.Audit = NewAudit(common.GetTokenUser(request))
+	c.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	c.Active = true
 
 	validate := validator.New()
@@ -61,6 +66,9 @@ func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 
 //Update modify category attributes
 func (c *Category) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	//TODO check if body is valid
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(request.Body), &jsonMap)
@@ -81,6 +89,9 @@ func (c *Category) Update(request events.APIGatewayProxyRequest) (events.APIGate
 
 //Delete removes a new category from the database
 func (c *Category) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	//TODO implement mark to delete
 	//TODO verify if there is any event with this category
 	err := db.DeleteItem(common.CategoriesTable, "categoryId", request.PathParameters["id"])

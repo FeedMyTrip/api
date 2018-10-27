@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -12,9 +13,10 @@ import (
 
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
+	refreshToken string
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
+func (suite *FeedMyTripAPITestSuite) Test0010Login() {
 	req := events.APIGatewayProxyRequest{
 		Body: `{
 			"username": "test",
@@ -24,6 +26,23 @@ func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 
 	auth := resources.Auth{}
 	response, err := auth.Login(req)
+	user := resources.AuthUserResponse{}
+	json.Unmarshal([]byte(response.Body), &user)
+	suite.refreshToken = *user.Tokens.RefreshToken
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0020RefreshToken() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.refreshToken,
+		},
+	}
+
+	auth := resources.Auth{}
+	response, err := auth.Refresh(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)

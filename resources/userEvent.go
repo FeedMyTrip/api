@@ -38,7 +38,7 @@ type UserEvent struct {
 //GetAll return all user events filtered
 func (u *UserEvent) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	filterExpression, filterValues := common.ParseRequestFilters(request)
-	result, err := db.GetAllItems(common.UserEventsTable, filterExpression, filterValues)
+	result, err := db.Scan(common.UserEventsTable, filterExpression, filterValues)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -55,7 +55,7 @@ func (u *UserEvent) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	}
 
 	u.UserEventID = uuid.New().String()
-	u.Audit = NewAudit(common.GetTokenUser(request))
+	u.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	u.ItinerarySecondsOffset = -1
 
 	validate := validator.New()
@@ -80,7 +80,7 @@ func (u *UserEvent) Update(request events.APIGatewayProxyRequest) (events.APIGat
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
-	jsonMap["audit.updatedBy"] = "000002"
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	result, err := db.UpdateItem(common.UserEventsTable, "userEventId", request.PathParameters["id"], jsonMap)
@@ -99,7 +99,7 @@ func (u *UserEvent) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 	//TODO check if user is trip admin
 	if credentialConfirmed == false {
 		u.LoadUserEvent(request.PathParameters["id"])
-		if u.Audit.CreatedBy == common.GetTokenUser(request) {
+		if u.Audit.CreatedBy == common.GetTokenUser(request).UserID {
 			credentialConfirmed = true
 		}
 	}

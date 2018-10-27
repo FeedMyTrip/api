@@ -2,6 +2,7 @@ package resources
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -16,11 +17,16 @@ import (
 type Geoname struct {
 	GeonameID   string      `json:"geonameId" validate:"required"`
 	CountryID   string      `json:"countryId"`
+	RegionID    string      `json:"regionId"`
 	Translation Translation `json:"translation" validate:"required"`
 }
 
 //SaveNew creates a new country or city
 func (g *Geoname) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
 	err := json.Unmarshal([]byte(request.Body), g)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
@@ -61,6 +67,9 @@ func (g *Geoname) GetAll(request events.APIGatewayProxyRequest) (events.APIGatew
 
 //Update modify geoname attributes
 func (g *Geoname) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	//TODO check if body is valid
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(request.Body), &jsonMap)
@@ -79,6 +88,9 @@ func (g *Geoname) Update(request events.APIGatewayProxyRequest) (events.APIGatew
 
 //Delete removes a country or city from the database
 func (g *Geoname) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	//TODO implement mark to delete
 	//TODO verify if there is any event with this geoname
 	err := db.DeleteItem(common.GeonamesTable, "geonameId", request.PathParameters["id"])

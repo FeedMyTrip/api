@@ -27,6 +27,12 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Path: /auth/login
             Method: post
+        Refresh:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /auth/refresh
+            Method: get
 
   TripsFunction:
     Type: AWS::Serverless::Function

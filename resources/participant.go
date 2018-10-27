@@ -39,8 +39,7 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	//TODO replace 000001 by the userID that execute the action from Cognito
-	p.Audit = NewAudit("000001")
+	p.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	p.ParticipantID = uuid.New().String()
 	validate := validator.New()
 	err = validate.Struct(p)
@@ -80,7 +79,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 	// TODO validate fields before update (userId, ParticipantId and auditing fileds should not be updated)
 
 	//TODO change to user id that executes the action
-	jsonMap["audit.updatedBy"] = "000002"
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
@@ -138,26 +137,6 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 	}, nil
-}
-
-// NewParticipant returns a new participant pointer with a unique id
-func NewParticipant(body string) (*Participant, error) {
-	p := &Participant{}
-	err := json.Unmarshal([]byte(body), p)
-	if err != nil {
-		return nil, err
-	}
-	p.ParticipantID = uuid.New().String()
-	//TODO replace 000001 by the userID that execute the action from Cognito
-	p.Audit = NewAudit("000001")
-
-	validate := validator.New()
-	err = validate.Struct(p)
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
 }
 
 //NewOwner returns the owner as a participant in the Trip

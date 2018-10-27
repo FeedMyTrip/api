@@ -35,13 +35,16 @@ type ScheduleResponse struct {
 
 //SaveNew creates a new schedule for an event
 func (s *Schedule) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	err := json.Unmarshal([]byte(request.Body), s)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
 	s.ScheduleID = uuid.New().String()
-	s.Audit = NewAudit(common.GetTokenUser(request))
+	s.Audit = NewAudit(common.GetTokenUser(request).UserID)
 
 	validate := validator.New()
 	err = validate.Struct(s)
@@ -73,6 +76,9 @@ func (s *Schedule) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 
 //Update saves schedule modifications to the database
 func (s *Schedule) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(request.Body), &jsonMap)
 	if err != nil {
@@ -80,7 +86,7 @@ func (s *Schedule) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	//TODO change to user id that executes the action
-	jsonMap["audit.updatedBy"] = common.GetTokenUser(request)
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	event := Event{}
@@ -113,6 +119,9 @@ func (s *Schedule) Update(request events.APIGatewayProxyRequest) (events.APIGate
 
 //Delete removes an event schedule
 func (s *Schedule) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	if !common.IsTokenUserAdmin(request) {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
 	event := Event{}
 	event.Load(request)
 

@@ -18,19 +18,21 @@ import (
 // Trip represents a user trip
 type Trip struct {
 	TripID       string        `json:"tripId" validate:"required"`
-	Title        string        `json:"title" validate:"required"`
-	Description  string        `json:"description"`
+	Title        Translation   `json:"title" validate:"required"`
+	Description  Translation   `json:"description"`
+	Mode         string        `json:"Mode"`
 	ItineraryID  string        `json:"itineraryID"`
 	Itineraries  []Itinerary   `json:"itineraries"`
 	Participants []Participant `json:"participants"`
 	Invites      []Invite      `json:"invites"`
+	Locations    string        `json:"locations"`
 	Audit        *Audit        `json:"audit"`
 }
 
 //GetAll returns all Trips the user can view
 func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	filterExpression, filterValues := common.ParseRequestFilters(request)
-	result, err := db.GetAllItems(common.TripsTable, filterExpression, filterValues)
+	result, err := db.Scan(common.TripsTable, filterExpression, filterValues)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -59,18 +61,18 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	tokenUser := common.GetTokenUser(request)
+	userID := common.GetTokenUser(request).UserID
 
 	t.TripID = uuid.New().String()
-	t.Itineraries = append(t.Itineraries, *NewDefaultItinerary(tokenUser))
+	t.Itineraries = append(t.Itineraries, *NewDefaultItinerary(userID))
 	t.ItineraryID = t.Itineraries[0].ItineraryID
 
-	t.Participants = append(t.Participants, *NewOwner(tokenUser))
+	t.Participants = append(t.Participants, *NewOwner(userID))
 
 	i := Invite{}
 	t.Invites = append(t.Invites, i)
 
-	t.Audit = NewAudit(tokenUser)
+	t.Audit = NewAudit(userID)
 
 	validate := validator.New()
 	err = validate.Struct(t)
@@ -101,7 +103,7 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
-	jsonMap["audit.updatedBy"] = "000002"
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	result, err := db.UpdateItem(common.TripsTable, "tripId", request.PathParameters["id"], jsonMap)
@@ -116,7 +118,7 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 //UpdateTripAudit updates only the audit attributes of a Trip using the request information
 func UpdateTripAudit(request events.APIGatewayProxyRequest) error {
 	jsonMap := make(map[string]interface{})
-	jsonMap["audit.updatedBy"] = "000002"
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	_, err := db.UpdateItem(common.TripsTable, "tripId", request.PathParameters["id"], jsonMap)

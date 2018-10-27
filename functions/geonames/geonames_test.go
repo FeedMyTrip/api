@@ -21,6 +21,7 @@ const (
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
 	db        *dynamodb.DynamoDB
+	token     string
 	countryID string
 	cityID    string
 }
@@ -28,10 +29,20 @@ type FeedMyTripAPITestSuite struct {
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	common.GeonamesTable = TableName
 	db.CreateTable(TableName, "geonameId", 1, 1)
+
+	credentials := `{
+		"username": "test",
+		"password": "test12345"
+	}`
+	user, _ := resources.LoginUser(credentials)
+	suite.token = *user.Tokens.AccessToken
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCountry() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"translation": {
 				"pt": "Brasil",
@@ -52,6 +63,9 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCountry() {
 
 func (suite *FeedMyTripAPITestSuite) Test0020SaveNewCity() {
 	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		Body: `{
 			"countryId": "` + suite.countryID + `",
 			"translation": {
@@ -73,12 +87,18 @@ func (suite *FeedMyTripAPITestSuite) Test0020SaveNewCity() {
 
 func (suite *FeedMyTripAPITestSuite) Test1000Delete() {
 	reqCountry := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.countryID,
 		},
 	}
 
 	reqCity := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
 		PathParameters: map[string]string{
 			"id": suite.cityID,
 		},

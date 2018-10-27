@@ -218,8 +218,8 @@ func Query(table, indexName, indexValue string) (*dynamodb.QueryOutput, error) {
 	return result, nil
 }
 
-// GetAllItems return an array with all items from a difined table
-func GetAllItems(table, filterExpression string, expressionAttributeValues map[string]*dynamodb.AttributeValue) (*dynamodb.ScanOutput, error) {
+// Scan return an array with all items from a difined table
+func Scan(table, filterExpression string, expressionAttributeValues map[string]*dynamodb.AttributeValue) (*dynamodb.ScanOutput, error) {
 	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func GetAllItems(table, filterExpression string, expressionAttributeValues map[s
 		}
 	}
 
-	//TODO remove scan and change for query
+	//TODO: remove scan and change for query
 	result, err := db.Scan(params)
 	if err != nil {
 		return nil, err
