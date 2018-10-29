@@ -238,6 +238,72 @@ Resources:
             Path: /events/{id}/schedules/{scheduleId}
             Method: delete
 
+  HighlightsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-highlights
+      Runtime: go1.x
+      CodeUri: ./deploy/highlights.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetHighlights:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights
+            Method: get
+        PostHighlights:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights
+            Method: post
+        GetHighlight:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}
+            Method: get
+        UpdateHighlight:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}
+            Method: patch
+        DeleteHighlight:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}
+            Method: delete
+        AddHighlightContent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}/add/{contentType}/{contentId}
+            Method: post
+        RemoveHighlightContent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}/remove/{contentType}/{contentId}
+            Method: delete
+
   CategoriesFunction:
     Type: AWS::Serverless::Function
     Properties:

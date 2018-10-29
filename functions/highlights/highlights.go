@@ -27,6 +27,16 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		case "PATCH":
 			return highlight.Update(req)
 		}
+	case "/highlights/{id}/add/{contentType}/{contentId}":
+		switch req.HTTPMethod {
+		case "POST":
+			return highlight.AddContent(req)
+		}
+	case "/highlights/{id}/remove/{contentType}/{contentId}":
+		switch req.HTTPMethod {
+		case "DELETE":
+			return highlight.RemoveContent(req)
+		}
 	}
 
 	return events.APIGatewayProxyResponse{
