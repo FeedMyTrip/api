@@ -31,6 +31,7 @@ type FeedMyTripAPITestSuite struct {
 	inviteID             string
 	itineraryID          string
 	principalItineraryID string
+	itineraryEventID     string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
@@ -51,8 +52,12 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"title": "FMT - Testing suite #1",
-			"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			"title": {
+				"en": "FMT - Testing suite #1"
+			},
+			"description": {
+				"en": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			}
 		}`,
 	}
 
@@ -73,7 +78,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020SaveNewTripEmptyTitleFail() {
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"description": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			"description.pt": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
 		}`,
 	}
 
@@ -104,7 +109,7 @@ func (suite *FeedMyTripAPITestSuite) Test0040UpdateTrip() {
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"description": "Edited description using patch: Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			"description.en": "Edited description using patch: Loren ipsum ea est atqui iisque placerat, est nobis videre."
 		}`,
 		PathParameters: map[string]string{
 			"id": suite.tripID,
@@ -244,7 +249,9 @@ func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"title": "Europe 2019 - France and Italy",
+			"title": {
+				"en": "FMT - Testing suite #1"
+			},
 			"userId": "000001",
 			"startDate": "2018-10-12T02:46:13.164772488Z",
 			"endDate": "2018-10-27T02:46:13.164772488Z"
@@ -285,7 +292,118 @@ func (suite *FeedMyTripAPITestSuite) Test0120UpdateItinerary() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0130DeletePrincipalItineraryFail() {
+func (suite *FeedMyTripAPITestSuite) Test0130CreateNewItineraryEvent() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		Body: `{
+			"title": {
+				"en": "FMT - Testing suite #1"
+			},
+			"description": {
+				"en": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			}
+		}`,
+		PathParameters: map[string]string{
+			"id":          suite.tripID,
+			"itineraryId": suite.itineraryID,
+		},
+	}
+
+	event := resources.UserEvent{}
+	response, err := event.SaveNew(req)
+
+	uer := resources.UserEventResponse{}
+	json.Unmarshal([]byte(response.Body), &uer)
+	suite.itineraryEventID = uer.Event.UserEventID
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0140UpdateItineraryEvent() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		Body: `{
+			"title.pt": "FMT - Testando #1",
+			"description.pt": "Loren ipsum ea est atqui iisque placerat, est nobis videre.",
+			"beginOffset": 259200
+			}`,
+		PathParameters: map[string]string{
+			"id":          suite.tripID,
+			"itineraryId": suite.itineraryID,
+			"eventId":     suite.itineraryEventID,
+		},
+	}
+
+	event := resources.UserEvent{}
+	response, err := event.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0150DeleteItineraryEvent() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id":          suite.tripID,
+			"itineraryId": suite.itineraryID,
+			"eventId":     suite.itineraryEventID,
+		},
+	}
+
+	event := resources.UserEvent{}
+	response, err := event.Delete(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0160AddItineraryGlobalEvent() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		Body: `{
+			"title": {
+				"pt": "FMT - Testing suite #1"
+			},
+			"description": {
+				"pt": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+			}
+		}`,
+	}
+
+	globalEvent := resources.Event{}
+	response, err := globalEvent.SaveNew(req)
+	json.Unmarshal([]byte(response.Body), &globalEvent)
+	globalEventID := globalEvent.EventID
+
+	req = events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id":            suite.tripID,
+			"itineraryId":   suite.itineraryID,
+			"globalEventId": globalEventID,
+		},
+	}
+
+	event := resources.UserEvent{}
+	response, err = event.AddGlobal(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0170DeletePrincipalItineraryFail() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
@@ -307,7 +425,7 @@ func (suite *FeedMyTripAPITestSuite) Test0130DeletePrincipalItineraryFail() {
 	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0130DeleteItinerary() {
+func (suite *FeedMyTripAPITestSuite) Test0180DeleteItinerary() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,

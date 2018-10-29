@@ -66,6 +66,11 @@ type TokenUser struct {
 	Groups []string `json:"cognito:groups"`
 }
 
+//IsAdmin verify if the user is in the Admin group
+func (t *TokenUser) IsAdmin() bool {
+	return strings.Contains(strings.Join(t.Groups, ","), "Admin")
+}
+
 //GetTokenUser return the userID and Groups from the request access token
 func GetTokenUser(request events.APIGatewayProxyRequest) *TokenUser {
 	tokenUser := &TokenUser{}
@@ -98,14 +103,18 @@ func APIError(statusCode int, err error) (events.APIGatewayProxyResponse, error)
 
 //APIResponse gernerates an APIGatewayProxyResponse based on the interface object
 func APIResponse(object interface{}, statuscode int) (events.APIGatewayProxyResponse, error) {
-	jsonObject, err := json.Marshal(object)
-	if err != nil {
-		return APIError(http.StatusUnprocessableEntity, err)
+	jsonObjectStr := ""
+	if object != nil {
+		jsonObject, err := json.Marshal(object)
+		if err != nil {
+			return APIError(http.StatusUnprocessableEntity, err)
+		}
+		jsonObjectStr = string(jsonObject)
 	}
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: statuscode,
-		Body:       string(jsonObject),
+		Body:       jsonObjectStr,
 		Headers: map[string]string{
 			"Access-Control-Allow-Origin":      "*",
 			"Access-Control-Allow-Credentials": "true",

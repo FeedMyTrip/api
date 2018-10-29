@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -21,6 +22,7 @@ type Itinerary struct {
 	UserID      string      `json:"userId" validate:"required"`
 	StartDate   time.Time   `json:"startDate" validate:"required"`
 	EndDate     time.Time   `json:"endDate" validate:"required"`
+	Events      []UserEvent `json:"events"`
 	Audit       *Audit      `json:"audit"`
 }
 
@@ -42,6 +44,9 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	i.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	i.UserID = common.GetTokenUser(request).UserID
 	i.ItineraryID = uuid.New().String()
+	event := UserEvent{}
+	i.Events = append(i.Events, event)
+
 	validate := validator.New()
 	err = validate.Struct(i)
 	if err != nil {
@@ -59,6 +64,19 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	}
 
 	err = UpdateTripAudit(request)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	t := Trip{}
+	t.LoadTrip(request.PathParameters["id"])
+	index, err := getItineraryIndex(t.Itineraries, i.ItineraryID)
+	if err != nil {
+		return common.APIError(http.StatusNotFound, err)
+	}
+
+	// Because of a problem with the dynamodb sdk need to create a dummy event and delete to get an empty list
+	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "itineraries["+strconv.Itoa(index)+"].events", 0)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -144,12 +162,14 @@ func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 func NewDefaultItinerary(userID string) *Itinerary {
 	i := &Itinerary{}
 	i.ItineraryID = uuid.New().String()
-	i.Title.EN = "Default Itinerary"
-	i.Title.PT = "Roteiro Padrão"
-	i.Title.ES = "Itinerario Estándar"
+	i.Title.EN = "Default"
+	i.Title.PT = "Padrão"
+	i.Title.ES = "Estándar"
 	i.UserID = userID
 	i.StartDate = time.Now()
 	i.EndDate = i.StartDate.AddDate(0, 0, 15)
+	event := UserEvent{}
+	i.Events = append(i.Events, event)
 	i.Audit = NewAudit(userID)
 	return i
 }

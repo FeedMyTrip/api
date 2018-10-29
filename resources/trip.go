@@ -2,6 +2,7 @@ package resources
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -27,6 +28,16 @@ type Trip struct {
 	Invites      []Invite      `json:"invites"`
 	Locations    string        `json:"locations"`
 	Audit        *Audit        `json:"audit"`
+}
+
+//IsTripAdmin validates if a user is a Trip admin
+func (t *Trip) IsTripAdmin(userID string) bool {
+	for _, p := range t.Participants {
+		if p.UserID == userID && p.UserRole == "Admin" {
+			return true
+		}
+	}
+	return false
 }
 
 //GetAll returns all Trips the user can view
@@ -80,6 +91,10 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
+	if t.Title.IsEmpty() {
+		return common.APIError(http.StatusBadRequest, errors.New("can't create Trip without Title"))
+	}
+
 	err = db.PutItem(t, common.TripsTable)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
@@ -91,7 +106,14 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	// Because of a problem with the dynamodb sdk need to create a dummy event and delete to get an empty list
+	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "itineraries[0].events", 0)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
 	t.Invites = []Invite{}
+	t.Itineraries[0].Events = []UserEvent{}
 	return common.APIResponse(t, http.StatusCreated)
 }
 

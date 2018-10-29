@@ -139,6 +139,38 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}
             Method: delete
+        PostItineraryAddGlobalEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/itineraries/{itineraryId}/add/{globalEventId}
+            Method: post
+        PostItineraryNewEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/itineraries/{itineraryId}/events
+            Method: post
+        UpdateItineraryEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/itineraries/{itineraryId}/events/{eventId}
+            Method: patch
+        DeleteItineraryEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/itineraries/{itineraryId}/events/{eventId}
+            Method: delete
 
   EventsFunction:
     Type: AWS::Serverless::Function
@@ -204,48 +236,6 @@ Resources:
             Auth: 
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules/{scheduleId}
-            Method: delete
-
-  UserEventsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: fmt-lambda-userEvents
-      Runtime: go1.x
-      CodeUri: ./deploy/userEvents.zip
-      Policies: AmazonDynamoDBFullAccess
-      Tracing: Active
-      Events:
-        GetUserEvents:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /userevents
-            Method: get
-        PostUserEvents:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /userevents
-            Method: post
-        UpdateUserEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /userevents/{id}
-            Method: patch
-        DeleteUserEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /userevents/{id}
             Method: delete
 
   CategoriesFunction:

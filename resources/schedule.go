@@ -90,7 +90,7 @@ func (s *Schedule) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	event := Event{}
-	event.Load(request)
+	event.Load(request.PathParameters["id"])
 	index := getScheduleIndex(event.Schedules, request.PathParameters["scheduleId"])
 	if index == -1 {
 		return common.APIError(http.StatusNotFound, errors.New("schedule not found"))
@@ -123,7 +123,7 @@ func (s *Schedule) Delete(request events.APIGatewayProxyRequest) (events.APIGate
 		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
 	}
 	event := Event{}
-	event.Load(request)
+	event.Load(request.PathParameters["id"])
 
 	index := getScheduleIndex(event.Schedules, request.PathParameters["scheduleId"])
 	if index == -1 {

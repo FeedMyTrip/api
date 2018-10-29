@@ -67,6 +67,26 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		case "DELETE":
 			return itinerary.Delete(req)
 		}
+	case "/trips/{id}/itineraries/{itineraryId}/events":
+		event := resources.UserEvent{}
+		switch req.HTTPMethod {
+		case "POST":
+			return event.SaveNew(req)
+		}
+	case "/trips/{id}/itineraries/{itineraryId}/events/{eventId}":
+		event := resources.UserEvent{}
+		switch req.HTTPMethod {
+		case "PATCH":
+			return event.Update(req)
+		case "DELETE":
+			return event.Delete(req)
+		}
+	case "/trips/{id}/itineraries/{itineraryId}/add/{globalEventId}":
+		event := resources.UserEvent{}
+		switch req.HTTPMethod {
+		case "POST":
+			return event.AddGlobal(req)
+		}
 	}
 
 	return events.APIGatewayProxyResponse{

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -77,7 +78,13 @@ func PutListItem(table, keyLabel, keyValue, listName string, data interface{}) (
 	emptyList := []*dynamodb.AttributeValue{}
 	update[":empty_list"] = &dynamodb.AttributeValue{L: emptyList}
 
-	updateExpression := "SET " + listName + " = list_append(if_not_exists(" + listName + ", :empty_list), :" + listName + ")"
+	value := listName
+	re := regexp.MustCompile(`([[0-9]+]\.)`)
+	if re.MatchString(listName) {
+		value = re.ReplaceAllString(listName, "_")
+	}
+
+	updateExpression := "SET " + listName + "= list_append(if_not_exists(" + listName + ", :empty_list), :" + value + ")"
 
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: update,
@@ -118,6 +125,10 @@ func UpdateListItem(table, keyLabel, keyValue, listName string, index int, data 
 
 	for key, value := range update {
 		valueKey := strings.Replace(key, ".", "", -1)
+		re := regexp.MustCompile(`([[0-9]+]\.)`)
+		if re.MatchString(key) {
+			valueKey = re.ReplaceAllString(listName, "_")
+		}
 		updateValues[":"+valueKey] = value
 		updateExpresion += " " + listName + "[" + indexStr + "]." + key + " = :" + valueKey + ","
 	}

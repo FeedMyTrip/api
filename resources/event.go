@@ -43,8 +43,8 @@ func (e *Event) GetAll(request events.APIGatewayProxyRequest) (events.APIGateway
 }
 
 //Load get Event information from the database
-func (e *Event) Load(request events.APIGatewayProxyRequest) error {
-	result, err := db.GetItem(common.EventsTable, "eventId", request.PathParameters["id"])
+func (e *Event) Load(id string) error {
+	result, err := db.GetItem(common.EventsTable, "eventId", id)
 	if err != nil {
 		return err
 	}
@@ -76,6 +76,10 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 	err = validate.Struct(e)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	if e.Title.IsEmpty() {
+		return common.APIError(http.StatusBadRequest, errors.New("can't create an Event without Title"))
 	}
 
 	err = db.PutItem(e, common.EventsTable)
