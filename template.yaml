@@ -34,6 +34,24 @@ Resources:
             Path: /auth/refresh
             Method: get
 
+  UsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: fmt-lambda-users
+      Runtime: go1.x
+      CodeUri: ./deploy/users.zip
+      Policies: AmazonDynamoDBFullAccess
+      Tracing: Active
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /users/{id}
+            Method: get
+
   TripsFunction:
     Type: AWS::Serverless::Function
     Properties:

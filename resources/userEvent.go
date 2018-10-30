@@ -91,7 +91,7 @@ func (u *UserEvent) Update(request events.APIGatewayProxyRequest) (events.APIGat
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	itineraryIndex, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
@@ -128,7 +128,7 @@ func (u *UserEvent) Update(request events.APIGatewayProxyRequest) (events.APIGat
 //Delete removes an user event
 func (u *UserEvent) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 
 	itineraryIndex, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
 	if err != nil {
@@ -172,7 +172,7 @@ func save(u *UserEvent, request events.APIGatewayProxyRequest) (events.APIGatewa
 	}
 
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	index, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)

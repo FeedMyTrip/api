@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gbrlsnchs/jwt"
@@ -17,8 +18,8 @@ var (
 	TripsTable = "Trips"
 	//EventsTable defines the database table to store the Events and nested objects
 	EventsTable = "Events"
-	//UserEventsTable defines the database table to store the users events and nested objects
-	UserEventsTable = "UserEvents"
+	//UsersTable defines the database table to store the users nested objects
+	UsersTable = "Users"
 	//CategoriesTable defines the database table to store the Categories and nested objects
 	CategoriesTable = "Categories"
 	//CountriesTable defines the database table to store the Countries and Cities
@@ -62,8 +63,9 @@ func ParseRequestFilters(request events.APIGatewayProxyRequest) (string, map[str
 //TokenUser represents user information form the cognito token in Authorization header
 type TokenUser struct {
 	*jwt.JWT
-	UserID string   `json:"sub"`
-	Groups []string `json:"cognito:groups"`
+	UserID       string   `json:"sub"`
+	Groups       []string `json:"cognito:groups"`
+	LanguageCode string   `json:"custom:language_code"`
 }
 
 //IsAdmin verify if the user is in the Admin group
@@ -91,6 +93,9 @@ func IsTokenUserAdmin(request events.APIGatewayProxyRequest) bool {
 //APIError generates an api error message response with the defines error and status code
 func APIError(statusCode int, err error) (events.APIGatewayProxyResponse, error) {
 	jsonBody := `{"error":"` + err.Error() + `"}`
+	if aerr, ok := err.(awserr.Error); ok {
+		jsonBody = `{"error":"` + aerr.Error() + `"}`
+	}
 	return events.APIGatewayProxyResponse{
 		StatusCode: statusCode,
 		Body:       jsonBody,
@@ -120,4 +125,16 @@ func APIResponse(object interface{}, statuscode int) (events.APIGatewayProxyResp
 			"Access-Control-Allow-Credentials": "true",
 		},
 	}, nil
+}
+
+//GetContentIndex return a index from a string array comparint to the string value
+func GetContentIndex(content []string, id string) int {
+	index := 0
+	for _, c := range content {
+		if c == id {
+			return index
+		}
+		index++
+	}
+	return -1
 }

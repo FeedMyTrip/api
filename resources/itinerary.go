@@ -69,7 +69,7 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	}
 
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	index, err := getItineraryIndex(t.Itineraries, i.ItineraryID)
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
@@ -102,7 +102,7 @@ func (i *Itinerary) Update(request events.APIGatewayProxyRequest) (events.APIGat
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	index, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
@@ -133,7 +133,7 @@ func (i *Itinerary) Update(request events.APIGatewayProxyRequest) (events.APIGat
 func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	//TODO implement mark to delete
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	index, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)

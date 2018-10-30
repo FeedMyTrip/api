@@ -23,10 +23,11 @@ type Trip struct {
 	Description  Translation   `json:"description"`
 	Mode         string        `json:"Mode"`
 	ItineraryID  string        `json:"itineraryID"`
+	Like         int           `json:"like"`
+	Dislike      int           `json:"dislike"`
 	Itineraries  []Itinerary   `json:"itineraries"`
 	Participants []Participant `json:"participants"`
 	Invites      []Invite      `json:"invites"`
-	Locations    string        `json:"locations"`
 	Audit        *Audit        `json:"audit"`
 }
 
@@ -52,8 +53,8 @@ func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	return common.APIResponse(list, http.StatusOK)
 }
 
-//LoadTrip get trip information from the database
-func (t *Trip) LoadTrip(id string) error {
+//Load get trip information from the database
+func (t *Trip) Load(id string) error {
 	tripResult, err := db.GetItem(common.TripsTable, "tripId", id)
 	if err != nil {
 		return err
@@ -99,6 +100,8 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
+
+	AddTripToUser(userID, t.TripID)
 
 	// Because of a problem with the dynamodb sdk need to create a dummy invite and delete to get an empty list
 	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "invites", 0)
@@ -157,9 +160,15 @@ func (t *Trip) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	//TODO register in audit table this action
 	//TODO implement marked to delete
 
+	t.Load(request.PathParameters["id"])
+
 	err := db.DeleteItem(common.TripsTable, "tripId", request.PathParameters["id"])
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	for _, p := range t.Participants {
+		RemoveTripFromUser(p.UserID, t.TripID)
 	}
 
 	return events.APIGatewayProxyResponse{

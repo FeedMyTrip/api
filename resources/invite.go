@@ -70,7 +70,7 @@ func (i *Invite) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatew
 //Delete remove the Trip invite from the database
 func (i *Invite) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	index, err := getInviteIndex(t.Invites, request.PathParameters["inviteId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)

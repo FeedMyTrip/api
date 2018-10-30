@@ -17,11 +17,12 @@ type FeedMyTripAPITestSuite struct {
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010Login() {
+	credentials := `{
+		"username": "test_admin",
+		"password": "fmt12345"
+	}`
 	req := events.APIGatewayProxyRequest{
-		Body: `{
-			"username": "test",
-			"password": "test12345"
-		}`,
+		Body: credentials,
 	}
 
 	auth := resources.Auth{}

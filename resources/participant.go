@@ -39,8 +39,8 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	p.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	p.ParticipantID = uuid.New().String()
+	p.Audit = NewAudit(common.GetTokenUser(request).UserID)
 	validate := validator.New()
 	err = validate.Struct(p)
 	if err != nil {
@@ -58,6 +58,11 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 	}
 
 	err = UpdateTripAudit(request)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	err = AddTripToUser(p.UserID, request.PathParameters["id"])
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -83,7 +88,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 	index, err := getParticipantIndex(t.Participants, request.PathParameters["participantId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
@@ -113,7 +118,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 //Delete remove a participant from the database
 func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	t := Trip{}
-	t.LoadTrip(request.PathParameters["id"])
+	t.Load(request.PathParameters["id"])
 
 	if t.Participants[0].ParticipantID == request.PathParameters["participantId"] {
 		return common.APIError(http.StatusBadRequest, errors.New("trip owner can not be deleted"))
@@ -124,12 +129,19 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 		return common.APIError(http.StatusNotFound, err)
 	}
 
+	deletedUserID := t.Participants[index].UserID
+
 	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "participants", index)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
 	err = UpdateTripAudit(request)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	err = RemoveTripFromUser(deletedUserID, t.TripID)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}

@@ -309,6 +309,40 @@ func PutItem(object interface{}, table string) error {
 	return nil
 }
 
+//BatchGetItem get multiple itens based on an array of id strings
+func BatchGetItem(tableName, keyName, projection string, ids []string) (*dynamodb.BatchGetItemOutput, error) {
+	db, err := connect(AWSRegion)
+	if err != nil {
+		return nil, err
+	}
+
+	batchKeys := []map[string]*dynamodb.AttributeValue{}
+	for _, id := range ids {
+		key := map[string]*dynamodb.AttributeValue{
+			keyName: &dynamodb.AttributeValue{
+				S: aws.String(id),
+			},
+		}
+		batchKeys = append(batchKeys, key)
+	}
+
+	input := &dynamodb.BatchGetItemInput{
+		RequestItems: map[string]*dynamodb.KeysAndAttributes{
+			tableName: {
+				Keys:                 batchKeys,
+				ProjectionExpression: aws.String(projection),
+			},
+		},
+	}
+
+	result, err := db.BatchGetItem(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 //CreateTable creates a new database table
 func CreateTable(tableName, keyLabel string, rcu, wcu int64) error {
 	db, err := connect(AWSRegion)

@@ -11,23 +11,19 @@ import (
 	"github.com/feedmytrip/api/db"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/feedmytrip/api/resources"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-const (
-	TableName = "TripsTest"
-)
-
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
-	db                   *dynamodb.DynamoDB
 	token                string
+	loggedUserID         string
 	tripID               string
 	participantID        string
 	participantOwnerID   string
+	participantUserId    string
 	inviteID             string
 	itineraryID          string
 	principalItineraryID string
@@ -35,15 +31,40 @@ type FeedMyTripAPITestSuite struct {
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
-	common.TripsTable = TableName
-	db.CreateTable(TableName, "tripId", 1, 1)
+	common.TripsTable = "TripsTest"
+	common.UsersTable = "UsersTest"
+
+	db.CreateTable("TripsTest", "tripId", 1, 1)
 
 	credentials := `{
-		"username": "test",
-		"password": "test12345"
+		"username": "test_admin",
+		"password": "fmt12345"
 	}`
-	user, _ := resources.LoginUser(credentials)
-	suite.token = *user.Tokens.AccessToken
+	loggedUser, _ := resources.LoginUser(credentials)
+	suite.token = *loggedUser.Tokens.AccessToken
+	suite.loggedUserID = loggedUser.UserID
+
+	credentials = `{
+		"username": "test_participant",
+		"password": "fmt12345"
+	}`
+	participantUser, _ := resources.LoginUser(credentials)
+	suite.participantUserId = participantUser.UserID
+
+	user := resources.User{}
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id": suite.loggedUserID,
+		},
+	}
+	user.GetUserDetails(req)
+
+	req.PathParameters["id"] = suite.participantUserId
+	participant := resources.User{}
+	participant.GetUserDetails(req)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
@@ -129,7 +150,7 @@ func (suite *FeedMyTripAPITestSuite) Test0050SaveNewParticipant() {
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"userId": "000005",
+			"userId": "` + suite.participantUserId + `",
 			"userRole": "Viewer"
 		}`,
 		PathParameters: map[string]string{
@@ -252,7 +273,7 @@ func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
 			"title": {
 				"en": "FMT - Testing suite #1"
 			},
-			"userId": "000001",
+			"userId": "` + suite.loggedUserID + `",
 			"startDate": "2018-10-12T02:46:13.164772488Z",
 			"endDate": "2018-10-27T02:46:13.164772488Z"
 		}`,

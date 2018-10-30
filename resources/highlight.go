@@ -116,9 +116,9 @@ func (h *Highlight) RemoveContent(request events.APIGatewayProxyRequest) (events
 	}
 	index := 0
 	if request.PathParameters["contentType"] == "events" {
-		index = getContentIndex(h.Events, request.PathParameters["contentId"])
+		index = common.GetContentIndex(h.Events, request.PathParameters["contentId"])
 	} else if request.PathParameters["contentType"] == "trips" {
-		index = getContentIndex(h.Trips, request.PathParameters["contentId"])
+		index = common.GetContentIndex(h.Trips, request.PathParameters["contentId"])
 	} else {
 		return common.APIError(http.StatusBadRequest, errors.New("invalid contentType"))
 	}
@@ -188,15 +188,4 @@ func (h *Highlight) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
 	}, nil
-}
-
-func getContentIndex(content []string, id string) int {
-	index := 0
-	for _, c := range content {
-		if c == id {
-			return index
-		}
-		index++
-	}
-	return -1
 }

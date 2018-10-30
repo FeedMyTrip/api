@@ -26,6 +26,8 @@ type Event struct {
 	RegionID            string      `json:"regionId"`
 	CityID              string      `json:"cityId"`
 	Address             string      `json:"address"`
+	Like                int         `json:"like"`
+	Dislike             int         `json:"dislike"`
 	Schedules           []Schedule  `json:"schedules"`
 	Audit               *Audit      `json:"audit"`
 }

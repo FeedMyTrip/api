@@ -31,8 +31,8 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	db.CreateTable(TableName, "geonameId", 1, 1)
 
 	credentials := `{
-		"username": "test",
-		"password": "test12345"
+		"username": "test_admin",
+		"password": "fmt12345"
 	}`
 	user, _ := resources.LoginUser(credentials)
 	suite.token = *user.Tokens.AccessToken
