@@ -51,6 +51,14 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /users/{id}
             Method: get
+        UpdateFavorite:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /users/favorites/{contentType}/{contentId}
+            Method: post
 
   TripsFunction:
     Type: AWS::Serverless::Function

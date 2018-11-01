@@ -58,7 +58,7 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCountry() {
 	suite.countryID = geoname.GeonameID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020SaveNewCity() {
@@ -82,7 +82,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020SaveNewCity() {
 	suite.cityID = geoname.GeonameID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test1000Delete() {
@@ -107,11 +107,11 @@ func (suite *FeedMyTripAPITestSuite) Test1000Delete() {
 	geoname := resources.Geoname{}
 	response, err := geoname.Delete(reqCountry)
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 
 	response, err = geoname.Delete(reqCity)
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {

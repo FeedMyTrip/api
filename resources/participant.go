@@ -16,6 +16,17 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
+const (
+	//ParticipantOwnerRole defines a participant as a trip owner
+	ParticipantOwnerRole = "Owner"
+	//ParticipantAdminRole defines a participant as a trip admin
+	ParticipantAdminRole = "Admin"
+	//ParticipantEditorRole defines a participant as a trip editor
+	ParticipantEditorRole = "Editor"
+	//ParticipantViewerRole defines a participant as a trip viewer
+	ParticipantViewerRole = "Viewer"
+)
+
 // Participant represents a user that is participating in the trip
 type Participant struct {
 	ParticipantID string `json:"participantId" validate:"required"`
@@ -30,7 +41,7 @@ type ParticipantResponse struct {
 	Participant *Participant `json:"participant" validate:"required"`
 }
 
-//SaveNew creates a new PArticipant to a Trip on the database
+//SaveNew creates a new Participant to a Trip on the database
 func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	//Check if user Trip role is Admin or Owner to be able to include new participants
 
@@ -62,7 +73,11 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	err = AddTripToUser(p.UserID, request.PathParameters["id"])
+	scope := UserTripViewScope
+	if p.UserRole == ParticipantAdminRole {
+		scope = UserTripEditScope
+	}
+	err = AddTripToUser(p.UserID, request.PathParameters["id"], scope)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -75,23 +90,30 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 
 //Update saves participant modifications to the database
 func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	jsonMap := make(map[string]interface{})
-	err := json.Unmarshal([]byte(request.Body), &jsonMap)
-	if err != nil {
-		return common.APIError(http.StatusBadRequest, err)
-	}
-
-	// TODO validate fields before update (userId, ParticipantId and auditing fileds should not be updated)
-
-	//TODO change to user id that executes the action
-	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
-	jsonMap["audit.updatedDate"] = time.Now()
-
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
 	index, err := getParticipantIndex(t.Participants, request.PathParameters["participantId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
+	}
+
+	if t.Participants[index].UserRole == ParticipantOwnerRole {
+		return common.APIError(http.StatusBadRequest, errors.New("trip owner`s role can not be changed"))
+	}
+
+	jsonMap := make(map[string]interface{})
+	err = json.Unmarshal([]byte(request.Body), &p)
+	if err != nil {
+		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	jsonMap["userRole"] = p.UserRole
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
+	jsonMap["audit.updatedDate"] = time.Now()
+
+	oldUserRole := t.Participants[index].UserRole
+	if oldUserRole == p.UserRole {
+
 	}
 
 	result, err := db.UpdateListItem(common.TripsTable, "tripId", t.TripID, "participants", index, jsonMap)
@@ -109,6 +131,20 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	scope := ""
+	if t.Participants[index].UserRole == ParticipantAdminRole {
+		scope = UserTripEditScope
+	} else if t.Participants[index].UserRole == ParticipantViewerRole {
+		scope = UserTripViewScope
+	}
+
+	if scope != "" {
+		err = AddTripToUser(p.UserID, request.PathParameters["id"], scope)
+		if err != nil {
+			return common.APIError(http.StatusInternalServerError, err)
+		}
+	}
+
 	rp := ParticipantResponse{}
 	rp.TripID = request.PathParameters["id"]
 	rp.Participant = &t.Participants[index]
@@ -119,17 +155,21 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
-
-	if t.Participants[0].ParticipantID == request.PathParameters["participantId"] {
-		return common.APIError(http.StatusBadRequest, errors.New("trip owner can not be deleted"))
-	}
-
 	index, err := getParticipantIndex(t.Participants, request.PathParameters["participantId"])
 	if err != nil {
 		return common.APIError(http.StatusNotFound, err)
 	}
 
+	if t.Participants[index].UserRole == ParticipantOwnerRole {
+		return common.APIError(http.StatusBadRequest, errors.New("trip owner can not be deleted"))
+	}
+
 	deletedUserID := t.Participants[index].UserID
+
+	loggedUser := common.GetTokenUser(request)
+	if !loggedUser.IsAdmin() && loggedUser.UserID != deletedUserID && !t.IsTripAdmin(loggedUser.UserID) {
+		return common.APIError(http.StatusBadRequest, errors.New("not authorized to delete this participant"))
+	}
 
 	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "participants", index)
 	if err != nil {
@@ -155,7 +195,7 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 func NewOwner(userID string) *Participant {
 	p := &Participant{}
 	p.UserID = userID
-	p.UserRole = "Owner"
+	p.UserRole = ParticipantOwnerRole
 	p.ParticipantID = uuid.New().String()
 	p.Audit = NewAudit(userID)
 	return p

@@ -59,7 +59,7 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewEvent() {
 	suite.eventID = event.EventID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020GetAllEvents() {
@@ -73,7 +73,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020GetAllEvents() {
 	response, err := event.GetAll(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
@@ -95,7 +95,7 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
 	response, err := event.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0040CreateEventSchedule() {
@@ -120,7 +120,7 @@ func (suite *FeedMyTripAPITestSuite) Test0040CreateEventSchedule() {
 	suite.scheduleID = sr.Schedule.ScheduleID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0050UpdateEventSchedule() {
@@ -142,7 +142,7 @@ func (suite *FeedMyTripAPITestSuite) Test0050UpdateEventSchedule() {
 	response, err := s.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0060DeleteEventSchedule() {
@@ -160,7 +160,7 @@ func (suite *FeedMyTripAPITestSuite) Test0060DeleteEventSchedule() {
 	response, err := s.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test1000DeleteEvent() {
@@ -177,7 +177,7 @@ func (suite *FeedMyTripAPITestSuite) Test1000DeleteEvent() {
 	response, err := event.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {

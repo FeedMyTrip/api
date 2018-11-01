@@ -23,18 +23,29 @@ type Trip struct {
 	Description  Translation   `json:"description"`
 	Mode         string        `json:"Mode"`
 	ItineraryID  string        `json:"itineraryID"`
-	Like         int           `json:"like"`
-	Dislike      int           `json:"dislike"`
 	Itineraries  []Itinerary   `json:"itineraries"`
 	Participants []Participant `json:"participants"`
 	Invites      []Invite      `json:"invites"`
+	Favorite     int           `json:"favorite"`
 	Audit        *Audit        `json:"audit"`
 }
 
-//IsTripAdmin validates if a user is a Trip admin
+//IsTripAdmin validates if a user is admin or owner
 func (t *Trip) IsTripAdmin(userID string) bool {
 	for _, p := range t.Participants {
-		if p.UserID == userID && p.UserRole == "Admin" {
+		if p.UserID == userID {
+			if p.UserRole == ParticipantAdminRole || p.UserRole == ParticipantOwnerRole {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+//IsTripEditor validates if a user is a Trip Editor
+func (t *Trip) IsTripEditor(userID string) bool {
+	for _, p := range t.Participants {
+		if p.UserID == userID && p.UserRole == ParticipantEditorRole {
 			return true
 		}
 	}
@@ -101,7 +112,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	AddTripToUser(userID, t.TripID)
+	AddTripToUser(userID, t.TripID, UserTripEditScope)
 
 	// Because of a problem with the dynamodb sdk need to create a dummy invite and delete to get an empty list
 	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "invites", 0)

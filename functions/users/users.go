@@ -16,6 +16,11 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		case "GET":
 			return user.GetUserDetails(req)
 		}
+	case "/users/favorites/{contentType}/{contentId}":
+		switch req.HTTPMethod {
+		case "POST":
+			return user.ToggleFavoriteContent(req)
+		}
 	}
 
 	return events.APIGatewayProxyResponse{

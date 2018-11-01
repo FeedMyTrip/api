@@ -26,8 +26,7 @@ type Event struct {
 	RegionID            string      `json:"regionId"`
 	CityID              string      `json:"cityId"`
 	Address             string      `json:"address"`
-	Like                int         `json:"like"`
-	Dislike             int         `json:"dislike"`
+	Favorite            int         `json:"favorite"`
 	Schedules           []Schedule  `json:"schedules"`
 	Audit               *Audit      `json:"audit"`
 }
@@ -105,7 +104,7 @@ func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
 	}
 
-	//TODO Check if request body is valid
+	//TODO: Check if request body is valid
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(request.Body), &jsonMap)
 	if err != nil {

@@ -92,9 +92,9 @@ func (u *UserEvent) Update(request events.APIGatewayProxyRequest) (events.APIGat
 
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
-	itineraryIndex, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
-	if err != nil {
-		return common.APIError(http.StatusNotFound, err)
+	itineraryIndex := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
+	if itineraryIndex == -1 {
+		return common.APIError(http.StatusNotFound, errors.New("itinerary not found"))
 	}
 
 	eventIndex, err := getItineraryEventIndex(t.Itineraries[itineraryIndex].Events, request.PathParameters["eventId"])
@@ -130,9 +130,9 @@ func (u *UserEvent) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
 
-	itineraryIndex, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
-	if err != nil {
-		return common.APIError(http.StatusNotFound, err)
+	itineraryIndex := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
+	if itineraryIndex == -1 {
+		return common.APIError(http.StatusNotFound, errors.New("itinerary not found"))
 	}
 
 	eventIndex, err := getItineraryEventIndex(t.Itineraries[itineraryIndex].Events, request.PathParameters["eventId"])
@@ -143,7 +143,7 @@ func (u *UserEvent) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 	user := common.GetTokenUser(request)
 	if !user.IsAdmin() {
 		if !t.IsTripAdmin(user.UserID) {
-			if t.Itineraries[itineraryIndex].UserID != user.UserID {
+			if t.Itineraries[itineraryIndex].OwnerID != user.UserID {
 				return common.APIError(http.StatusForbidden, errors.New("no permission to delete event"))
 			}
 		}
@@ -173,9 +173,9 @@ func save(u *UserEvent, request events.APIGatewayProxyRequest) (events.APIGatewa
 
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
-	index, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
-	if err != nil {
-		return common.APIError(http.StatusNotFound, err)
+	index := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
+	if index == -1 {
+		return common.APIError(http.StatusNotFound, errors.New("itinerary not found"))
 	}
 
 	jsonMap := make(map[string]interface{})

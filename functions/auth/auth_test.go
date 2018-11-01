@@ -32,7 +32,7 @@ func (suite *FeedMyTripAPITestSuite) Test0010Login() {
 	suite.refreshToken = *user.Tokens.RefreshToken
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020RefreshToken() {
@@ -46,7 +46,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020RefreshToken() {
 	response, err := auth.Refresh(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {

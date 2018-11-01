@@ -55,7 +55,7 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewHighlight() {
 	suite.HighlightID = highlight.HighlightID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020UpdateHighlight() {
@@ -75,7 +75,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020UpdateHighlight() {
 	response, err := highlight.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0030HighlightAddEvent() {
@@ -94,7 +94,7 @@ func (suite *FeedMyTripAPITestSuite) Test0030HighlightAddEvent() {
 	response, err := highlight.AddContent(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0040HighlightAddTrip() {
@@ -113,7 +113,7 @@ func (suite *FeedMyTripAPITestSuite) Test0040HighlightAddTrip() {
 	response, err := highlight.AddContent(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0050HighlightRemoveEvent() {
@@ -132,7 +132,7 @@ func (suite *FeedMyTripAPITestSuite) Test0050HighlightRemoveEvent() {
 	response, err := highlight.RemoveContent(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0060HighlightRemoveTrip() {
@@ -151,7 +151,7 @@ func (suite *FeedMyTripAPITestSuite) Test0060HighlightRemoveTrip() {
 	response, err := highlight.RemoveContent(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {

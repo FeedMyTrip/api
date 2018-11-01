@@ -83,6 +83,9 @@ func PutListItem(table, keyLabel, keyValue, listName string, data interface{}) (
 	if re.MatchString(listName) {
 		value = re.ReplaceAllString(listName, "_")
 	}
+	if strings.Contains(value, ".") {
+		value = strings.Replace(value, ".", "", -1)
+	}
 
 	updateExpression := "SET " + listName + "= list_append(if_not_exists(" + listName + ", :empty_list), :" + value + ")"
 
@@ -310,7 +313,7 @@ func PutItem(object interface{}, table string) error {
 }
 
 //BatchGetItem get multiple itens based on an array of id strings
-func BatchGetItem(tableName, keyName, projection string, ids []string) (*dynamodb.BatchGetItemOutput, error) {
+func BatchGetItem(tableName, keyName string, ids []string) (*dynamodb.BatchGetItemOutput, error) {
 	db, err := connect(AWSRegion)
 	if err != nil {
 		return nil, err
@@ -329,8 +332,7 @@ func BatchGetItem(tableName, keyName, projection string, ids []string) (*dynamod
 	input := &dynamodb.BatchGetItemInput{
 		RequestItems: map[string]*dynamodb.KeysAndAttributes{
 			tableName: {
-				Keys:                 batchKeys,
-				ProjectionExpression: aws.String(projection),
+				Keys: batchKeys,
 			},
 		},
 	}

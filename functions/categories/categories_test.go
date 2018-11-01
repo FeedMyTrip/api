@@ -57,7 +57,7 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
 	suite.categoryID = category.CategoryID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020GetAllCategories() {
@@ -71,7 +71,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020GetAllCategories() {
 	response, err := category.GetAll(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0021GetAllActiveCategories() {
@@ -94,7 +94,7 @@ func (suite *FeedMyTripAPITestSuite) Test0021GetAllActiveCategories() {
 	}
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 	assert.Equal(suite.T(), active, true)
 }
 
@@ -116,7 +116,7 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
 	response, err := category.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
@@ -133,7 +133,7 @@ func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
 	response, err := category.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {

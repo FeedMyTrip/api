@@ -90,7 +90,7 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
 	suite.principalItineraryID = trip.ItineraryID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0020SaveNewTripEmptyTitleFail() {
@@ -107,7 +107,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020SaveNewTripEmptyTitleFail() {
 	response, err := trip.SaveNew(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0030GetAllTrips() {
@@ -121,7 +121,7 @@ func (suite *FeedMyTripAPITestSuite) Test0030GetAllTrips() {
 	response, err := trip.GetAll(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0040UpdateTrip() {
@@ -141,7 +141,7 @@ func (suite *FeedMyTripAPITestSuite) Test0040UpdateTrip() {
 	response, err := trip.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0050SaveNewParticipant() {
@@ -164,7 +164,7 @@ func (suite *FeedMyTripAPITestSuite) Test0050SaveNewParticipant() {
 	suite.participantID = participant.ParticipantID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0060UpdateParticipant() {
@@ -185,7 +185,7 @@ func (suite *FeedMyTripAPITestSuite) Test0060UpdateParticipant() {
 	response, err := participant.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0070DeleteParticipantOwnerFail() {
@@ -203,7 +203,7 @@ func (suite *FeedMyTripAPITestSuite) Test0070DeleteParticipantOwnerFail() {
 	response, err := participant.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0080DeleteParticipant() {
@@ -221,7 +221,7 @@ func (suite *FeedMyTripAPITestSuite) Test0080DeleteParticipant() {
 	response, err := participant.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0090SaveNewInvite() {
@@ -243,7 +243,7 @@ func (suite *FeedMyTripAPITestSuite) Test0090SaveNewInvite() {
 	suite.inviteID = invite.InviteID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0100DeleteInvite() {
@@ -261,7 +261,7 @@ func (suite *FeedMyTripAPITestSuite) Test0100DeleteInvite() {
 	response, err := invite.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
@@ -271,11 +271,11 @@ func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
 		},
 		Body: `{
 			"title": {
-				"en": "FMT - Testing suite #1"
+				"en": "FMT - Itinerary #1"
 			},
 			"userId": "` + suite.loggedUserID + `",
-			"startDate": "2018-10-12T02:46:13.164772488Z",
-			"endDate": "2018-10-27T02:46:13.164772488Z"
+			"startDate": "2018-11-12T02:46:13.164772488Z",
+			"endDate": "2018-11-27T02:46:13.164772488Z"
 		}`,
 		PathParameters: map[string]string{
 			"id": suite.tripID,
@@ -288,7 +288,7 @@ func (suite *FeedMyTripAPITestSuite) Test0110SaveNewItinerary() {
 	suite.itineraryID = itinerary.ItineraryID
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0120UpdateItinerary() {
@@ -310,7 +310,7 @@ func (suite *FeedMyTripAPITestSuite) Test0120UpdateItinerary() {
 	response, err := itinerary.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0130CreateNewItineraryEvent() {
@@ -335,12 +335,14 @@ func (suite *FeedMyTripAPITestSuite) Test0130CreateNewItineraryEvent() {
 	event := resources.UserEvent{}
 	response, err := event.SaveNew(req)
 
-	uer := resources.UserEventResponse{}
-	json.Unmarshal([]byte(response.Body), &uer)
-	suite.itineraryEventID = uer.Event.UserEventID
+	if response.StatusCode == http.StatusCreated {
+		uer := resources.UserEventResponse{}
+		json.Unmarshal([]byte(response.Body), &uer)
+		suite.itineraryEventID = uer.Event.UserEventID
+	}
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0140UpdateItineraryEvent() {
@@ -364,7 +366,7 @@ func (suite *FeedMyTripAPITestSuite) Test0140UpdateItineraryEvent() {
 	response, err := event.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0150DeleteItineraryEvent() {
@@ -383,7 +385,7 @@ func (suite *FeedMyTripAPITestSuite) Test0150DeleteItineraryEvent() {
 	response, err := event.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0160AddItineraryGlobalEvent() {
@@ -421,7 +423,7 @@ func (suite *FeedMyTripAPITestSuite) Test0160AddItineraryGlobalEvent() {
 	response, err = event.AddGlobal(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0170DeletePrincipalItineraryFail() {
@@ -443,7 +445,7 @@ func (suite *FeedMyTripAPITestSuite) Test0170DeletePrincipalItineraryFail() {
 	response, err := itinerary.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusBadRequest, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0180DeleteItinerary() {
@@ -465,7 +467,7 @@ func (suite *FeedMyTripAPITestSuite) Test0180DeleteItinerary() {
 	response, err := itinerary.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test1000DeleteTrip() {
@@ -482,7 +484,7 @@ func (suite *FeedMyTripAPITestSuite) Test1000DeleteTrip() {
 	response, err := trip.Delete(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {

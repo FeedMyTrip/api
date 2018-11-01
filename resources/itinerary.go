@@ -19,7 +19,7 @@ import (
 type Itinerary struct {
 	ItineraryID string      `json:"itineraryID" validate:"required"`
 	Title       Translation `json:"title" validate:"required"`
-	UserID      string      `json:"userId" validate:"required"`
+	OwnerID     string      `json:"ownerId" validate:"required"`
 	StartDate   time.Time   `json:"startDate" validate:"required"`
 	EndDate     time.Time   `json:"endDate" validate:"required"`
 	Events      []UserEvent `json:"events"`
@@ -34,15 +34,22 @@ type ItineraryResponse struct {
 
 //SaveNew creates a new Itinerary to a Trip on the database
 func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//Check if user Trip role is Admin or Owner to be able to include new itineraries
+	loggedUser := common.GetTokenUser(request)
+
+	t := Trip{}
+	t.Load(request.PathParameters["id"])
+
+	if !t.IsTripAdmin(loggedUser.UserID) && !t.IsTripEditor(loggedUser.UserID) {
+		return common.APIError(http.StatusBadRequest, errors.New("itinerary creation not authorized"))
+	}
 
 	err := json.Unmarshal([]byte(request.Body), i)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
-	i.Audit = NewAudit(common.GetTokenUser(request).UserID)
-	i.UserID = common.GetTokenUser(request).UserID
+	i.Audit = NewAudit(loggedUser.UserID)
+	i.OwnerID = loggedUser.UserID
 	i.ItineraryID = uuid.New().String()
 	event := UserEvent{}
 	i.Events = append(i.Events, event)
@@ -58,7 +65,13 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	itineraries = append(itineraries, *i)
 	jsonMap[":itineraries"] = itineraries
 
-	_, err = db.PutListItem(common.TripsTable, "tripId", request.PathParameters["id"], "itineraries", jsonMap)
+	result, err := db.PutListItem(common.TripsTable, "tripId", request.PathParameters["id"], "itineraries", jsonMap)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	t = Trip{}
+	err = dynamodbattribute.UnmarshalMap(result.Attributes, &t)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -68,11 +81,9 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	t := Trip{}
-	t.Load(request.PathParameters["id"])
-	index, err := getItineraryIndex(t.Itineraries, i.ItineraryID)
-	if err != nil {
-		return common.APIError(http.StatusNotFound, err)
+	index := getItineraryIndex(t.Itineraries, i.ItineraryID)
+	if index == -1 {
+		return common.APIError(http.StatusNotFound, errors.New("itinerary not found"))
 	}
 
 	// Because of a problem with the dynamodb sdk need to create a dummy event and delete to get an empty list
@@ -81,31 +92,38 @@ func (i *Itinerary) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	err = AddTripToUser(i.OwnerID, t.TripID, UserTripEditScope)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
 	ri := ItineraryResponse{}
-	ri.TripID = request.PathParameters["id"]
+	ri.TripID = t.TripID
 	ri.Itinerary = i
 	return common.APIResponse(ri, http.StatusCreated)
 }
 
 //Update saves itinerary modifications to the database
 func (i *Itinerary) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
 	jsonMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(request.Body), &jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
+	delete(jsonMap, "itineraryID")
+	delete(jsonMap, "ownerId")
+	delete(jsonMap, "audit.createdBy")
+	delete(jsonMap, "audit.createdDate")
 
-	// TODO validate fields before update (userId, ItineraryId and auditing fileds should not be updated)
-
-	//TODO change to user id that executes the action
 	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
-	index, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
-	if err != nil {
-		return common.APIError(http.StatusNotFound, err)
+	index := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
+	if index == -1 {
+		return common.APIError(http.StatusNotFound, errors.New("itinerary not found"))
 	}
 
 	result, err := db.UpdateListItem(common.TripsTable, "tripId", t.TripID, "itineraries", index, jsonMap)
@@ -134,16 +152,16 @@ func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 	//TODO implement mark to delete
 	t := Trip{}
 	t.Load(request.PathParameters["id"])
-	index, err := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
-	if err != nil {
-		return common.APIError(http.StatusNotFound, err)
+	index := getItineraryIndex(t.Itineraries, request.PathParameters["itineraryId"])
+	if index == -1 {
+		return common.APIError(http.StatusNotFound, errors.New("itinerary not found"))
 	}
 
 	if t.ItineraryID == t.Itineraries[index].ItineraryID {
 		return common.APIError(http.StatusBadRequest, errors.New("itinerary marked as principal can't be deleted"))
 	}
 
-	err = db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "itineraries", index)
+	err := db.DeleteListItem(common.TripsTable, "tripId", t.TripID, "itineraries", index)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -151,6 +169,23 @@ func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 	err = UpdateTripAudit(request)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	deletedItineraryOwnerID := t.Itineraries[index].OwnerID
+
+	if !t.IsTripAdmin(deletedItineraryOwnerID) {
+		total := 0
+		for _, i := range t.Itineraries {
+			if i.OwnerID == deletedItineraryOwnerID {
+				total++
+			}
+		}
+		if total < 2 {
+			err = AddTripToUser(deletedItineraryOwnerID, t.TripID, UserTripViewScope)
+			if err != nil {
+				return common.APIError(http.StatusInternalServerError, err)
+			}
+		}
 	}
 
 	return events.APIGatewayProxyResponse{
@@ -165,7 +200,7 @@ func NewDefaultItinerary(userID string) *Itinerary {
 	i.Title.EN = "Default"
 	i.Title.PT = "Padrão"
 	i.Title.ES = "Estándar"
-	i.UserID = userID
+	i.OwnerID = userID
 	i.StartDate = time.Now()
 	i.EndDate = i.StartDate.AddDate(0, 0, 15)
 	event := UserEvent{}
@@ -174,21 +209,11 @@ func NewDefaultItinerary(userID string) *Itinerary {
 	return i
 }
 
-func getItineraryIndex(itineraries []Itinerary, itineraryID string) (int, error) {
-	index := 0
-	found := false
-
-	for _, p := range itineraries {
+func getItineraryIndex(itineraries []Itinerary, itineraryID string) int {
+	for index, p := range itineraries {
 		if p.ItineraryID == itineraryID {
-			found = true
-			break
+			return index
 		}
-		index++
 	}
-
-	if !found {
-		return -1, errors.New("Itinerary not found")
-	}
-
-	return index, nil
+	return -1
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -14,8 +15,9 @@ import (
 
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
-	token        string
-	loggedUserID string
+	token          string
+	loggedUserID   string
+	favoriteTripID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
@@ -58,6 +60,8 @@ func (suite *FeedMyTripAPITestSuite) Test0010GetUserDetails() {
 	}
 	trip = resources.Trip{}
 	response, err = trip.SaveNew(req)
+	json.Unmarshal([]byte(response.Body), &trip)
+	suite.favoriteTripID = trip.TripID
 
 	req = events.APIGatewayProxyRequest{
 		Headers: map[string]string{
@@ -75,7 +79,25 @@ func (suite *FeedMyTripAPITestSuite) Test0010GetUserDetails() {
 	response, err = user.GetUserDetails(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0010ToggleFavoriteTrip() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"contentType": resources.UserFavoriteTripsScope,
+			"contentId":   suite.favoriteTripID,
+		},
+	}
+
+	user := resources.User{}
+	response, err := user.ToggleFavoriteContent(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
 func TestFeedMyTripAPITestSuite(t *testing.T) {
