@@ -99,7 +99,7 @@ func (h *Highlight) GetAll(request events.APIGatewayProxyRequest) (events.APIGat
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
-	list := []Trip{}
+	list := []Highlight{}
 	dynamodbattribute.UnmarshalListOfMaps(result.Items, &list)
 	return common.APIResponse(list, http.StatusOK)
 }

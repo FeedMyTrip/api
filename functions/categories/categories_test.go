@@ -44,9 +44,9 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
 		},
 		Body: `{
 			"title": {
-				"en": "Transports",
-				"pt": "Transportes",
-				"es": "Transportes"
+				"en": "",
+				"pt": "Natureza",
+				"es": ""
 			}
 		}`,
 	}

@@ -56,6 +56,8 @@ func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
+	c.Title.Translate()
+
 	err = db.PutItem(c, common.CategoriesTable)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)

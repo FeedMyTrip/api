@@ -5,7 +5,10 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: Feed My Trip API
-      StageName: Beta
+      StageName: beta
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
       Auth:
         Authorizers:
           FMTApiCognitoAuthorizer:
