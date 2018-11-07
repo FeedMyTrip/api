@@ -43,7 +43,9 @@ Resources:
       Handler: fmt-lambda-users
       Runtime: go1.x
       CodeUri: ./deploy/users.zip
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - AmazonDynamoDBFullAccess
+        - TranslateReadOnly
       Tracing: Active
       Events:
         GetUsers:
@@ -69,7 +71,9 @@ Resources:
       Handler: fmt-lambda-trips
       Runtime: go1.x
       CodeUri: ./deploy/trips.zip
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - AmazonDynamoDBFullAccess
+        - TranslateReadOnly
       Tracing: Active
       Events:
         GetTrips:
@@ -207,7 +211,9 @@ Resources:
       Handler: fmt-lambda-events
       Runtime: go1.x
       CodeUri: ./deploy/events.zip
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - AmazonDynamoDBFullAccess
+        - TranslateReadOnly
       Tracing: Active
       Events:
         GetEvents:
@@ -273,7 +279,9 @@ Resources:
       Handler: fmt-lambda-highlights
       Runtime: go1.x
       CodeUri: ./deploy/highlights.zip
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - AmazonDynamoDBFullAccess
+        - TranslateReadOnly
       Tracing: Active
       Events:
         GetHighlights:
@@ -339,7 +347,9 @@ Resources:
       Handler: fmt-lambda-categories
       Runtime: go1.x
       CodeUri: ./deploy/categories.zip
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - AmazonDynamoDBFullAccess
+        - TranslateReadOnly
       Tracing: Active
       Events:
         GetCategories:
@@ -381,7 +391,9 @@ Resources:
       Handler: fmt-lambda-geonames
       Runtime: go1.x
       CodeUri: ./deploy/geonames.zip
-      Policies: AmazonDynamoDBFullAccess
+      Policies: 
+        - AmazonDynamoDBFullAccess
+        - TranslateReadOnly
       Tracing: Active
       Events:
         PostGeoname:
