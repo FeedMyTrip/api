@@ -15,6 +15,8 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		switch req.HTTPMethod {
 		case "POST":
 			return geoname.SaveNew(req)
+		case "GET":
+			return geoname.GetAll(req)
 		}
 	case "/geonames/{id}":
 		switch req.HTTPMethod {
@@ -26,12 +28,12 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 	case "/geonames/countries":
 		switch req.HTTPMethod {
 		case "GET":
-			return geoname.GetAll(req)
+			return geoname.GetAllByCountry(req)
 		}
 	case "/geonames/countries/{id}":
 		switch req.HTTPMethod {
 		case "GET":
-			return geoname.GetAll(req)
+			return geoname.GetAllByCountry(req)
 		}
 	}
 

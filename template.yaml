@@ -404,6 +404,14 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /geonames
             Method: post
+        GetGeoname:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth: 
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /geonames
+            Method: get
         UpdateGeoname:
           Type: Api
           Properties:
