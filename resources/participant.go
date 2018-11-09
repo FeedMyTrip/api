@@ -186,9 +186,7 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }
 
 //NewOwner returns the owner as a participant in the Trip

@@ -88,9 +88,7 @@ func (i *Invite) Delete(request events.APIGatewayProxyRequest) (events.APIGatewa
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }
 
 func getInviteIndex(invites []Invite, inviteID string) (int, error) {

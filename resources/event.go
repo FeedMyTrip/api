@@ -135,9 +135,7 @@ func (e *Event) Delete(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }
 
 //UpdateEventAudit updates only the audit attributes of a Event using the request information

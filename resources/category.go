@@ -77,7 +77,11 @@ func (c *Category) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
-	jsonMap["audit.updatedBy"] = common.GetTokenUser(request)
+
+	delete(jsonMap, "audit")
+	delete(jsonMap, "categoryId")
+
+	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
 	result, err := db.UpdateItem(common.CategoriesTable, "categoryId", request.PathParameters["id"], jsonMap)
@@ -101,7 +105,5 @@ func (c *Category) Delete(request events.APIGatewayProxyRequest) (events.APIGate
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }

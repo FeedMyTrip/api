@@ -135,9 +135,7 @@ func (s *Schedule) Delete(request events.APIGatewayProxyRequest) (events.APIGate
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }
 
 func getScheduleIndex(schedules []Schedule, scheduleID string) int {

@@ -182,7 +182,5 @@ func (t *Trip) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayP
 		RemoveTripFromUser(p.UserID, t.TripID)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }

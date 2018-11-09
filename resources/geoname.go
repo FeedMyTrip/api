@@ -93,6 +93,7 @@ func (g *Geoname) Update(request events.APIGatewayProxyRequest) (events.APIGatew
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
+	delete(jsonMap, "geonameId")
 
 	result, err := db.UpdateItem(common.GeonamesTable, "geonameId", request.PathParameters["id"], jsonMap)
 	if err != nil {
@@ -115,7 +116,5 @@ func (g *Geoname) Delete(request events.APIGatewayProxyRequest) (events.APIGatew
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }

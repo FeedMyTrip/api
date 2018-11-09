@@ -185,7 +185,5 @@ func (h *Highlight) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }

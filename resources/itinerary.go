@@ -188,9 +188,7 @@ func (i *Itinerary) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 		}
 	}
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-	}, nil
+	return common.APIResponse(nil, http.StatusOK)
 }
 
 //NewDefaultItinerary returns a itinerary with the default attributes
