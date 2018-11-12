@@ -250,7 +250,7 @@ func Scan(table, filterExpression string, expressionAttributeValues map[string]*
 
 	if value, ok := expressionAttributeValues["limit"]; ok {
 		limit, err := strconv.ParseInt(*value.S, 10, 64)
-		if err != nil {
+		if err == nil {
 			params.Limit = &limit
 		}
 	}

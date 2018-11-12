@@ -83,6 +83,8 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 		return common.APIError(http.StatusBadRequest, errors.New("can't create an Event without Title"))
 	}
 
+	e.Title.Translate()
+
 	err = db.PutItem(e, common.EventsTable)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
@@ -110,6 +112,10 @@ func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGateway
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
+
+	delete(jsonMap, "audit")
+	delete(jsonMap, "eventId")
+
 	jsonMap["audit.updatedBy"] = common.GetTokenUser(request).UserID
 	jsonMap["audit.updatedDate"] = time.Now()
 
