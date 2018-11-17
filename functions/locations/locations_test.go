@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/feedmytrip/api/resources"
-	"github.com/feedmytrip/api/resources/categories"
+	"github.com/feedmytrip/api/resources/locations"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -15,7 +15,7 @@ import (
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
 	token      string
-	categoryID string
+	locationID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
@@ -27,7 +27,7 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	suite.token = *user.Tokens.AccessToken
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
+func (suite *FeedMyTripAPITestSuite) Test0010SaveNewLocation() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
@@ -35,68 +35,69 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewCategory() {
 		Body: `{
 			"title": {
 				"en": "",
-				"pt": "Transporte",
+				"pt": "Portugal",
 				"es": ""
 			}
 		}`,
 	}
 
-	category := categories.Category{}
-	response, err := category.SaveNew(req)
-	json.Unmarshal([]byte(response.Body), &category)
-	suite.categoryID = category.ID
+	location := locations.Location{}
+	response, err := location.SaveNew(req)
+	json.Unmarshal([]byte(response.Body), &location)
+	suite.locationID = location.ID
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0020GetAllCategories() {
+func (suite *FeedMyTripAPITestSuite) Test0020GetAllLocations() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
+		QueryStringParameters: map[string]string{
+			"country_id": "is_not_null",
+		},
 	}
 
-	category := categories.Category{}
-	response, err := category.GetAll(req)
+	location := locations.Location{}
+	response, err := location.GetAll(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0030UpdateCategory() {
+func (suite *FeedMyTripAPITestSuite) Test0030UpdateLocation() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
 		PathParameters: map[string]string{
-			"id": suite.categoryID,
+			"id": suite.locationID,
 		},
 		Body: `{
-			"active": false,
-			"title.pt": "Nova Categoria 002",
-			"title.es": ""
+			"title.pt": "New location"
 		}`,
 	}
 
-	category := categories.Category{}
-	response, err := category.Update(req)
+	location := locations.Location{}
+	response, err := location.Update(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
-func (suite *FeedMyTripAPITestSuite) Test0040DeleteCategory() {
+func (suite *FeedMyTripAPITestSuite) Test0040DeleteLocation() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
 		PathParameters: map[string]string{
-			"id": suite.categoryID,
+			"id": suite.locationID,
 		},
 	}
 
-	category := categories.Category{}
-	response, err := category.Delete(req)
+	location := locations.Location{}
+	response, err := location.Delete(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)

@@ -5,35 +5,25 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/locations"
 )
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	geoname := resources.Geoname{}
+	location := locations.Location{}
 	switch req.Resource {
-	case "/geonames":
+	case "/locations":
 		switch req.HTTPMethod {
 		case "POST":
-			return geoname.SaveNew(req)
+			return location.SaveNew(req)
 		case "GET":
-			return geoname.GetAll(req)
+			return location.GetAll(req)
 		}
-	case "/geonames/{id}":
+	case "/locations/{id}":
 		switch req.HTTPMethod {
 		case "DELETE":
-			return geoname.Delete(req)
+			return location.Delete(req)
 		case "PATCH":
-			return geoname.Update(req)
-		}
-	case "/geonames/countries":
-		switch req.HTTPMethod {
-		case "GET":
-			return geoname.GetAllByCountry(req)
-		}
-	case "/geonames/countries/{id}":
-		switch req.HTTPMethod {
-		case "GET":
-			return geoname.GetAllByCountry(req)
+			return location.Update(req)
 		}
 	}
 

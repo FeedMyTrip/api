@@ -12,8 +12,8 @@ Resources:
       Auth:
         Authorizers:
           FMTApiCognitoAuthorizer:
-            UserPoolArn: 
-              - 'arn:aws:cognito-idp:us-east-1:563319661021:userpool/us-east-1_0JwI28hrb'
+            UserPoolArn:
+              - "arn:aws:cognito-idp:us-east-1:563319661021:userpool/us-east-1_0JwI28hrb"
 
   AuthFunction:
     Type: AWS::Serverless::Function
@@ -43,7 +43,7 @@ Resources:
       Handler: fmt-lambda-users
       Runtime: go1.x
       CodeUri: ./deploy/users.zip
-      Policies: 
+      Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
       Tracing: Active
@@ -52,7 +52,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /users/{id}
             Method: get
@@ -60,7 +60,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /users/favorites/{contentType}/{contentId}
             Method: post
@@ -71,7 +71,7 @@ Resources:
       Handler: fmt-lambda-trips
       Runtime: go1.x
       CodeUri: ./deploy/trips.zip
-      Policies: 
+      Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
       Tracing: Active
@@ -80,7 +80,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips
             Method: get
@@ -88,7 +88,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips
             Method: post
@@ -96,7 +96,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}
             Method: patch
@@ -104,7 +104,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}
             Method: delete
@@ -112,7 +112,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/participants
             Method: post
@@ -120,7 +120,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/participants/{participantId}
             Method: patch
@@ -128,7 +128,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/participants/{participantId}
             Method: delete
@@ -136,7 +136,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/invites
             Method: post
@@ -144,7 +144,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/invites/{inviteId}
             Method: delete
@@ -152,7 +152,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries
             Method: post
@@ -160,7 +160,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}
             Method: patch
@@ -168,7 +168,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}
             Method: delete
@@ -176,7 +176,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}/add/{globalEventId}
             Method: post
@@ -184,7 +184,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}/events
             Method: post
@@ -192,7 +192,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}/events/{eventId}
             Method: patch
@@ -200,7 +200,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}/itineraries/{itineraryId}/events/{eventId}
             Method: delete
@@ -211,7 +211,7 @@ Resources:
       Handler: fmt-lambda-events
       Runtime: go1.x
       CodeUri: ./deploy/events.zip
-      Policies: 
+      Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
       Tracing: Active
@@ -220,7 +220,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events
             Method: get
@@ -228,7 +228,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events
             Method: post
@@ -236,7 +236,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}
             Method: patch
@@ -244,7 +244,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}
             Method: delete
@@ -252,7 +252,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules
             Method: post
@@ -260,7 +260,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules/{scheduleId}
             Method: patch
@@ -268,7 +268,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules/{scheduleId}
             Method: delete
@@ -279,7 +279,7 @@ Resources:
       Handler: fmt-lambda-highlights
       Runtime: go1.x
       CodeUri: ./deploy/highlights.zip
-      Policies: 
+      Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
       Tracing: Active
@@ -288,7 +288,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights
             Method: get
@@ -296,7 +296,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights
             Method: post
@@ -304,7 +304,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}
             Method: get
@@ -312,7 +312,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}
             Method: patch
@@ -320,7 +320,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}
             Method: delete
@@ -328,7 +328,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}/add/{contentType}/{contentId}
             Method: post
@@ -336,7 +336,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}/remove/{contentType}/{contentId}
             Method: delete
@@ -347,16 +347,22 @@ Resources:
       Handler: fmt-lambda-categories
       Runtime: go1.x
       CodeUri: ./deploy/categories.zip
-      Policies: 
-        - AmazonDynamoDBFullAccess
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
         - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-06190a1b9857383df
+        SubnetIds:
+          - subnet-92e3e7ca
+          - subnet-e1457686
       Tracing: Active
       Events:
         GetCategories:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /categories
             Method: get
@@ -364,7 +370,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /categories
             Method: post
@@ -372,7 +378,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /categories/{id}
             Method: patch
@@ -380,67 +386,57 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /categories/{id}
             Method: delete
 
-  GeonamesFunction:
+  LocationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: fmt-lambda-geonames
+      Handler: fmt-lambda-locations
       Runtime: go1.x
-      CodeUri: ./deploy/geonames.zip
-      Policies: 
-        - AmazonDynamoDBFullAccess
+      CodeUri: ./deploy/locations.zip
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
         - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-06190a1b9857383df
+        SubnetIds:
+          - subnet-92e3e7ca
+          - subnet-e1457686
       Tracing: Active
       Events:
-        PostGeoname:
+        PostLocation:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /geonames
+            Path: /locations
             Method: post
-        GetGeoname:
+        GetLocation:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /geonames
+            Path: /locations
             Method: get
-        UpdateGeoname:
+        UpdateLocation:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /geonames/{id}
+            Path: /locations/{id}
             Method: patch
-        DeleteGeoname:
+        DeleteLocation:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
+            Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /geonames/{id}
+            Path: /locations/{id}
             Method: delete
-        GetCountries:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /geonames/countries
-            Method: get
-        GetCities:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth: 
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /geonames/countries/{id}
-            Method: get

@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gbrlsnchs/jwt"
@@ -90,15 +91,18 @@ func IsTokenUserAdmin(request events.APIGatewayProxyRequest) bool {
 	return strings.Contains(strings.Join(user.Groups, ","), "Admin")
 }
 
+type apiErr struct {
+	APIError string `json:"error"`
+}
+
 //APIError generates an api error message response with the defines error and status code
 func APIError(statusCode int, err error) (events.APIGatewayProxyResponse, error) {
-	jsonBody := `{"error":"` + err.Error() + `"}`
-	if aerr, ok := err.(awserr.Error); ok {
-		jsonBody = `{"error":"` + aerr.Error() + `"}`
-	}
+	e := apiErr{}
+	e.APIError = err.Error()
+	jsonBytes, err := json.Marshal(e)
 	return events.APIGatewayProxyResponse{
 		StatusCode: statusCode,
-		Body:       jsonBody,
+		Body:       string(jsonBytes),
 		Headers: map[string]string{
 			"Access-Control-Allow-Origin":      "*",
 			"Access-Control-Allow-Credentials": "true",
@@ -108,7 +112,7 @@ func APIError(statusCode int, err error) (events.APIGatewayProxyResponse, error)
 
 //APIResponse gernerates an APIGatewayProxyResponse based on the interface object
 func APIResponse(object interface{}, statuscode int) (events.APIGatewayProxyResponse, error) {
-	jsonObjectStr := ""
+	jsonObjectStr := "{}"
 	if object != nil {
 		jsonObject, err := json.Marshal(object)
 		if err != nil {
@@ -137,4 +141,15 @@ func GetContentIndex(content []string, id string) int {
 		index++
 	}
 	return -1
+}
+
+//GetAWSSession returns a session to use with AWS Services
+func GetAWSSession(region string) (*session.Session, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(region)},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return sess, nil
 }
