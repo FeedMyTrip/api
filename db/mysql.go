@@ -32,9 +32,10 @@ type valid struct {
 }
 
 //Validate executes a select query and return a integer Total
-func Validate(session *dbr.Session, query string, values ...interface{}) (int, error) {
-	v := valid{Total: 0}
-	_, err := session.SelectBySql(query, values).Load(v)
+func Validate(session *dbr.Session, column []string, table string, filters dbr.Builder) (int, error) {
+	var v valid
+	stmt := session.Select(column...).From(table).Where(filters)
+	_, err := stmt.Load(&v)
 	if err != nil {
 		return -1, err
 	}

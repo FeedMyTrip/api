@@ -15,10 +15,11 @@ import (
 
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
-	adminToken       string
-	participantToken string
-	participantID    string
-	tripID           string
+	adminToken        string
+	participantToken  string
+	participantUserID string
+	participantID     string
+	tripID            string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
@@ -35,7 +36,7 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 	}`
 	participantUser, _ := auth.LoginUser(credentials)
 	suite.participantToken = *participantUser.Tokens.AccessToken
-	suite.participantID = participantUser.UserID
+	suite.participantUserID = participantUser.UserID
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
@@ -62,6 +63,177 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewTrip() {
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
+func (suite *FeedMyTripAPITestSuite) Test0020GetAllTrips() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+	}
+
+	trip := trips.Trip{}
+	response, err := trip.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0030UpdateTrip() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		Body: `{
+			"description.en": "Edited description using patch method"
+		}`,
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+		QueryStringParameters: map[string]string{
+			"translate": "description",
+		},
+	}
+
+	trip := trips.Trip{}
+	response, err := trip.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0100ForbiddenGetTripParticipants() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.participantToken,
+		},
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	participant := trips.Participant{}
+	response, err := participant.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusForbidden, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0110SaveNewParticipant() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		Body: `{
+			"user_id": "` + suite.participantUserID + `",
+			"role": "` + trips.ParticipantViewerRole + `"
+		}`,
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	participant := trips.Participant{}
+	response, err := participant.SaveNew(req)
+	json.Unmarshal([]byte(response.Body), &participant)
+	suite.participantID = participant.ID
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0120GetTripParticipants() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	participant := trips.Participant{}
+	response, err := participant.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0130UpdatepParticipant() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		Body: `{
+			"role": "` + trips.ParticipantAdminRole + `"
+		}`,
+		PathParameters: map[string]string{
+			"id":             suite.tripID,
+			"participant_id": suite.participantID,
+		},
+	}
+
+	participant := trips.Participant{}
+	response, err := participant.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0140DeleteParticipant() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		PathParameters: map[string]string{
+			"id":             suite.tripID,
+			"participant_id": suite.participantID,
+		},
+	}
+
+	participant := trips.Participant{}
+	response, err := participant.Delete(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0999InvalidDeleteTrip() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.participantToken,
+		},
+		PathParameters: map[string]string{
+			"id":             suite.tripID,
+			"participant_id": suite.participantID,
+		},
+	}
+
+	trip := trips.Trip{}
+	response, err := trip.Delete(req)
+	json.Unmarshal([]byte(response.Body), &trip)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusForbidden, response.StatusCode, response.Body)
+}
+
+/*
+func (suite *FeedMyTripAPITestSuite) Test1000DeleteTrip() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	trip := trips.Trip{}
+	response, err := trip.Delete(req)
+	json.Unmarshal([]byte(response.Body), &trip)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+*/
 func TestFeedMyTripAPITestSuite(t *testing.T) {
 	suite.Run(t, new(FeedMyTripAPITestSuite))
 }

@@ -152,6 +152,7 @@ CREATE TABLE `trip_participant`
  `updated_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ,
 PRIMARY KEY (`id`, `trip_id`),
 KEY `fk_trip` (`trip_id`),
+UNIQUE KEY `unique_participant` (`trip_id`,`user_id`),
 CONSTRAINT `FK_127` FOREIGN KEY `fk_trip` (`trip_id`) REFERENCES `trip` (`id`) ON DELETE CASCADE
 );
 

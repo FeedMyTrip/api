@@ -10,6 +10,7 @@ import (
 	"github.com/feedmytrip/api/common"
 	"github.com/feedmytrip/api/db"
 	"github.com/feedmytrip/api/resources/shared"
+	"github.com/gocraft/dbr"
 	"github.com/google/uuid"
 )
 
@@ -47,14 +48,19 @@ func (t *Trip) Get(request events.APIGatewayProxyRequest) (events.APIGatewayProx
 
 //GetAll returns all trips available in the database
 func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	tokenUser := common.GetTokenUser(request)
+	if !tokenUser.IsAdmin() {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access all trips"))
+	}
+
 	conn, err := db.Connect()
+	defer conn.Close()
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
 	session := conn.NewSession(nil)
 	defer session.Close()
-	defer conn.Close()
 
 	result, err := db.Select(session, db.TableTrip, request.QueryStringParameters, Trip{})
 	if err != nil {
@@ -64,7 +70,7 @@ func (t *Trip) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayP
 	return common.APIResponse(result, http.StatusOK)
 }
 
-//SaveNew creates a new event
+//SaveNew creates a new trip
 func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	tokenUser := common.GetTokenUser(request)
 
@@ -171,10 +177,20 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 
 	tokenUser := common.GetTokenUser(request)
 	if !tokenUser.IsAdmin() {
-		query := "select count(id) total from trip_participant where trip_id = ? and user_id = ? and (role = ? || role = ?)"
-		total, err := db.Validate(session, query, request.PathParameters["id"], tokenUser.UserID, ParticipantOwnerRole, ParticipantAdminRole)
-		if err != nil || total <= 0 {
-			return common.APIError(http.StatusForbidden, errors.New("only trip owner or admins can make changes"))
+		filter := dbr.And(
+			dbr.Eq("trip_id", request.PathParameters["id"]),
+			dbr.Eq("user_id", tokenUser.UserID),
+			dbr.Or(
+				dbr.Eq("role", ParticipantOwnerRole),
+				dbr.Eq("role", ParticipantAdminRole),
+			),
+		)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		if err != nil {
+			return common.APIError(http.StatusInternalServerError, err)
+		}
+		if total <= 0 {
+			return common.APIError(http.StatusForbidden, errors.New("only trip participant can access this resource"))
 		}
 	}
 
@@ -241,10 +257,17 @@ func (t *Trip) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayP
 
 	tokenUser := common.GetTokenUser(request)
 	if !tokenUser.IsAdmin() {
-		query := "select count(id) total from trip_participant where trip_id = ? and user_id = ? and role = ?"
-		total, err := db.Validate(session, query, request.PathParameters["id"], tokenUser.UserID, ParticipantOwnerRole)
-		if err != nil || total <= 0 {
-			return common.APIError(http.StatusForbidden, errors.New("only owner can delete the trip"))
+		filter := dbr.And(
+			dbr.Eq("trip_id", request.PathParameters["id"]),
+			dbr.Eq("user_id", tokenUser.UserID),
+			dbr.Eq("role", ParticipantOwnerRole),
+		)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		if err != nil {
+			return common.APIError(http.StatusInternalServerError, err)
+		}
+		if total <= 0 {
+			return common.APIError(http.StatusForbidden, errors.New("only trip participant can access this resource"))
 		}
 	}
 
