@@ -19,6 +19,7 @@ type FeedMyTripAPITestSuite struct {
 	participantToken  string
 	participantUserID string
 	participantID     string
+	itineraryID       string
 	tripID            string
 }
 
@@ -124,7 +125,7 @@ func (suite *FeedMyTripAPITestSuite) Test0110SaveNewParticipant() {
 		},
 		Body: `{
 			"user_id": "` + suite.participantUserID + `",
-			"role": "` + trips.ParticipantViewerRole + `"
+			"role": "` + trips.ParticipantAdminRole + `"
 		}`,
 		PathParameters: map[string]string{
 			"id": suite.tripID,
@@ -157,13 +158,13 @@ func (suite *FeedMyTripAPITestSuite) Test0120GetTripParticipants() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0130UpdatepParticipant() {
+func (suite *FeedMyTripAPITestSuite) Test0130UpdateParticipant() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.adminToken,
 		},
 		Body: `{
-			"role": "` + trips.ParticipantAdminRole + `"
+			"role": "` + trips.ParticipantViewerRole + `"
 		}`,
 		PathParameters: map[string]string{
 			"id":             suite.tripID,
@@ -178,7 +179,143 @@ func (suite *FeedMyTripAPITestSuite) Test0130UpdatepParticipant() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0140DeleteParticipant() {
+func (suite *FeedMyTripAPITestSuite) Test0200ForbiddenSaveNewItinerary() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.participantToken,
+		},
+		Body: `{
+			"title.pt": "Novo Roteiro"
+		}`,
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.SaveNew(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusForbidden, response.StatusCode, response.Body)
+}
+func (suite *FeedMyTripAPITestSuite) Test0210SaveNewItinerary() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		Body: `{
+			"title.pt": "Novo Roteiro"
+		}`,
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.SaveNew(req)
+	json.Unmarshal([]byte(response.Body), &itinerary)
+	suite.itineraryID = itinerary.ID
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0220GetTripItineraries() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		PathParameters: map[string]string{
+			"id": suite.tripID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0230UpdateItinerary() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		Body: `{
+			"title.pt": "Novo roteiro atualizado"
+		}`,
+		PathParameters: map[string]string{
+			"id":           suite.tripID,
+			"itinerary_id": suite.itineraryID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0240ForbiddenUpdateItinerary() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.participantToken,
+		},
+		Body: `{
+			"title.pt": "Novo roteiro atualizado"
+		}`,
+		PathParameters: map[string]string{
+			"id":           suite.tripID,
+			"itinerary_id": suite.itineraryID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusForbidden, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0996ForbiddenDeleteItinerary() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.participantToken,
+		},
+		PathParameters: map[string]string{
+			"id":           suite.tripID,
+			"itinerary_id": suite.itineraryID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.Delete(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusForbidden, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0997DeleteItinerary() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.adminToken,
+		},
+		PathParameters: map[string]string{
+			"id":           suite.tripID,
+			"itinerary_id": suite.itineraryID,
+		},
+	}
+
+	itinerary := trips.Itinerary{}
+	response, err := itinerary.Delete(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0998DeleteParticipant() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.adminToken,
@@ -215,7 +352,6 @@ func (suite *FeedMyTripAPITestSuite) Test0999InvalidDeleteTrip() {
 	assert.Equal(suite.T(), http.StatusForbidden, response.StatusCode, response.Body)
 }
 
-/*
 func (suite *FeedMyTripAPITestSuite) Test1000DeleteTrip() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
@@ -233,7 +369,7 @@ func (suite *FeedMyTripAPITestSuite) Test1000DeleteTrip() {
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
-*/
+
 func TestFeedMyTripAPITestSuite(t *testing.T) {
 	suite.Run(t, new(FeedMyTripAPITestSuite))
 }

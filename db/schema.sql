@@ -43,6 +43,7 @@ CREATE TABLE `translation`
 (
  `id`        varchar(45) NOT NULL ,
  `parent_id` varchar(45) NOT NULL ,
+ `table`     tinytext NOT NULL ,
  `field`     tinytext NOT NULL ,
  `pt`        text ,
  `es`        text ,

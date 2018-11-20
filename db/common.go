@@ -19,8 +19,8 @@ const (
 const (
 	//TableTrip defines the trips entities database table
 	TableTrip = "trip"
-	//TableTripParticpant defines the trip participants entities database table
-	TableTripParticpant = "trip_participant"
+	//TableTripParticipant defines the trip participants entities database table
+	TableTripParticipant = "trip_participant"
 	//TableTripInvite defines the trip invites entities database table
 	TableTripInvite = "trip_invite"
 	//TableTripItinerary defines the trip itineraries entities database table

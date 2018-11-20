@@ -54,7 +54,7 @@ func (p *Participant) GetAll(request events.APIGatewayProxyRequest) (events.APIG
 			dbr.Eq("trip_id", request.PathParameters["id"]),
 			dbr.Eq("user_id", tokenUser.UserID),
 		)
-		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 		if err != nil {
 			return common.APIError(http.StatusInternalServerError, err)
 		}
@@ -63,7 +63,7 @@ func (p *Participant) GetAll(request events.APIGatewayProxyRequest) (events.APIG
 		}
 	}
 
-	result, err := db.Select(session, db.TableTripParticpant, request.QueryStringParameters, Trip{})
+	result, err := db.Select(session, db.TableTripParticipant, request.QueryStringParameters, Participant{})
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -92,7 +92,7 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 				dbr.Eq("role", ParticipantAdminRole),
 			),
 		)
-		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 		if err != nil {
 			return common.APIError(http.StatusInternalServerError, err)
 		}
@@ -119,7 +119,7 @@ func (p *Participant) SaveNew(request events.APIGatewayProxyRequest) (events.API
 	}
 	defer tx.RollbackUnlessCommitted()
 
-	err = db.Insert(tx, db.TableTripParticpant, *p)
+	err = db.Insert(tx, db.TableTripParticipant, *p)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -145,7 +145,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 		dbr.Eq("trip_id", request.PathParameters["id"]),
 		dbr.Neq("role", ParticipantOwnerRole),
 	)
-	total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+	total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -164,7 +164,7 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 				dbr.Eq("role", ParticipantAdminRole),
 			),
 		)
-		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 		if err != nil {
 			return common.APIError(http.StatusInternalServerError, err)
 		}
@@ -188,14 +188,14 @@ func (p *Participant) Update(request events.APIGatewayProxyRequest) (events.APIG
 	}
 	defer tx.RollbackUnlessCommitted()
 
-	err = db.Update(tx, db.TableTripParticpant, request.PathParameters["participant_id"], *p, jsonMap)
+	err = db.Update(tx, db.TableTripParticipant, request.PathParameters["participant_id"], *p, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
 	tx.Commit()
 
-	result, err := db.QueryOne(session, db.TableTripParticpant, request.PathParameters["participant_id"], Participant{})
+	result, err := db.QueryOne(session, db.TableTripParticipant, request.PathParameters["participant_id"], Participant{})
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -219,7 +219,7 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 		dbr.Eq("trip_id", request.PathParameters["id"]),
 		dbr.Neq("role", ParticipantOwnerRole),
 	)
-	total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+	total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -237,7 +237,7 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 				dbr.Eq("role", ParticipantAdminRole),
 			),
 		)
-		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 		if err != nil {
 			return common.APIError(http.StatusInternalServerError, err)
 		}
@@ -246,7 +246,7 @@ func (p *Participant) Delete(request events.APIGatewayProxyRequest) (events.APIG
 		}
 	}
 
-	err = db.Delete(session, db.TableTripParticpant, request.PathParameters["participant_id"])
+	err = db.Delete(session, db.TableTripParticipant, request.PathParameters["participant_id"])
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}

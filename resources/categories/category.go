@@ -65,6 +65,7 @@ func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	c.Active = true
 	c.Title.ID = uuid.New().String()
 	c.Title.ParentID = c.ID
+	c.Title.Table = db.TableCategory
 	c.Title.Field = "title"
 	c.CreatedBy = tokenUser.UserID
 	c.CreatedDate = time.Now()

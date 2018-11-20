@@ -90,9 +90,11 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 
 	t.ID = uuid.New().String()
 	t.Title.ID = uuid.New().String()
+	t.Title.Table = db.TableTrip
 	t.Title.Field = "title"
 	t.Title.ParentID = t.ID
 	t.Description.ID = uuid.New().String()
+	t.Description.Table = db.TableTrip
 	t.Description.Field = "description"
 	t.Description.ParentID = t.ID
 	t.CreatedBy = tokenUser.UserID
@@ -111,6 +113,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	defaultItinerary.EndDate = time.Now()
 	defaultItinerary.Title.ID = uuid.New().String()
 	defaultItinerary.Title.ParentID = t.ID
+	defaultItinerary.Title.Table = db.TableTripItinerary
 	defaultItinerary.Title.Field = "title"
 	defaultItinerary.Title.PT = "Padrão"
 	defaultItinerary.Title.EN = "Default"
@@ -154,7 +157,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	err = db.Insert(tx, db.TableTripParticpant, ownerParticipant)
+	err = db.Insert(tx, db.TableTripParticipant, ownerParticipant)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -185,7 +188,7 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 				dbr.Eq("role", ParticipantAdminRole),
 			),
 		)
-		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 		if err != nil {
 			return common.APIError(http.StatusInternalServerError, err)
 		}
@@ -262,7 +265,7 @@ func (t *Trip) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayP
 			dbr.Eq("user_id", tokenUser.UserID),
 			dbr.Eq("role", ParticipantOwnerRole),
 		)
-		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticpant, filter)
+		total, err := db.Validate(session, []string{"count(id) total"}, db.TableTripParticipant, filter)
 		if err != nil {
 			return common.APIError(http.StatusInternalServerError, err)
 		}

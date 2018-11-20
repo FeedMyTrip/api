@@ -93,9 +93,11 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 	e.ID = uuid.New().String()
 	e.Active = true
 	e.Title.ID = uuid.New().String()
+	e.Title.Table = db.TableEvent
 	e.Title.Field = "title"
 	e.Title.ParentID = e.ID
 	e.Description.ID = uuid.New().String()
+	e.Description.Table = db.TableEvent
 	e.Description.Field = "description"
 	e.Description.ParentID = e.ID
 	e.CreatedBy = tokenUser.UserID

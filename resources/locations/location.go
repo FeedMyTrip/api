@@ -38,6 +38,7 @@ func (l *Location) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 
 	l.ID = uuid.New().String()
 	l.Title.ID = uuid.New().String()
+	l.Title.Table = db.TableLocation
 	l.Title.Field = "title"
 	l.Title.ParentID = l.ID
 
