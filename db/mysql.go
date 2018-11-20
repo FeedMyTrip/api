@@ -1,10 +1,12 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
 
+	//MySQL Driver
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocraft/dbr"
 )
@@ -15,8 +17,6 @@ func Connect() (*dbr.Connection, error) {
 	dbPass := os.Getenv("FMT_DBPASS")
 	dbHost := os.Getenv("FMT_DBHOST")
 	dbName := os.Getenv("FMT_DBNAME")
-
-	fmt.Println(dbHost)
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", dbUser, dbPass, dbHost, dbName)
 
@@ -39,7 +39,10 @@ func QueryOne(session *dbr.Session, table string, id string, object interface{})
 		return nil, err
 	}
 
-	return result[0], nil
+	if len(result) > 0 {
+		return result[0], nil
+	}
+	return nil, errors.New("invalid id, record not found")
 }
 
 //Select load records from the database

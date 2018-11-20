@@ -41,7 +41,7 @@ func (l *Location) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	l.Title.Field = "title"
 	l.Title.ParentID = l.ID
 
-	//TODO: l.Title.Translate()
+	l.Title.Translate()
 
 	conn, err := db.Connect()
 	if err != nil {

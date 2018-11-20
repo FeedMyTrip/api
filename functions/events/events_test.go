@@ -6,35 +6,25 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/feedmytrip/api/common"
-	"github.com/feedmytrip/api/db"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/auth"
+	fmt "github.com/feedmytrip/api/resources/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-const (
-	TableName = "EventsTest"
-)
-
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
-	db         *dynamodb.DynamoDB
 	token      string
 	eventID    string
 	scheduleID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
-	common.EventsTable = TableName
-	db.CreateTable(TableName, "eventId", 1, 1)
-
 	credentials := `{
 		"username": "test_admin",
 		"password": "fmt12345"
 	}`
-	user, _ := resources.LoginUser(credentials)
+	user, _ := auth.LoginUser(credentials)
 	suite.token = *user.Tokens.AccessToken
 }
 
@@ -45,18 +35,18 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewEvent() {
 		},
 		Body: `{
 			"title": {
-				"pt": "FMT - Testing suite #1"
+				"en": "Testing event creation"
 			},
 			"description": {
-				"pt": "Loren ipsum ea est atqui iisque placerat, est nobis videre."
+				"en": "testing description fields."
 			}
 		}`,
 	}
 
-	event := resources.Event{}
+	event := fmt.Event{}
 	response, err := event.SaveNew(req)
 	json.Unmarshal([]byte(response.Body), &event)
-	suite.eventID = event.EventID
+	suite.eventID = event.ID
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
@@ -69,8 +59,25 @@ func (suite *FeedMyTripAPITestSuite) Test0020GetAllEvents() {
 		},
 	}
 
-	event := resources.Event{}
+	event := fmt.Event{}
 	response, err := event.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0021GetEvent() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id": suite.eventID,
+		},
+	}
+
+	event := fmt.Event{}
+	response, err := event.Get(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
@@ -86,12 +93,12 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateEvent() {
 		},
 		Body: `{
 			"active": false,
-			"title.en": "New title in english test #001",
+			"title.en": "New title in english test",
 			"description.en": "New description in english"
 		}`,
 	}
 
-	event := resources.Event{}
+	event := fmt.Event{}
 	response, err := event.Update(req)
 
 	assert.Nil(suite.T(), err)
@@ -113,57 +120,16 @@ func (suite *FeedMyTripAPITestSuite) Test0040CreateEventSchedule() {
 		}`,
 	}
 
-	s := resources.Schedule{}
+	s := fmt.Schedule{}
 	response, err := s.SaveNew(req)
-	sr := resources.ScheduleResponse{}
-	json.Unmarshal([]byte(response.Body), &sr)
-	suite.scheduleID = sr.Schedule.ScheduleID
+	json.Unmarshal([]byte(response.Body), &s)
+	suite.scheduleID = s.ID
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0050UpdateEventSchedule() {
-	req := events.APIGatewayProxyRequest{
-		Headers: map[string]string{
-			"Authorization": suite.token,
-		},
-		PathParameters: map[string]string{
-			"id":         suite.eventID,
-			"scheduleId": suite.scheduleID,
-		},
-		Body: `{
-			"annualy": true,
-			"weekDays": "0110111"
-		}`,
-	}
-
-	s := resources.Schedule{}
-	response, err := s.Update(req)
-
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
-}
-
-func (suite *FeedMyTripAPITestSuite) Test0060DeleteEventSchedule() {
-	req := events.APIGatewayProxyRequest{
-		Headers: map[string]string{
-			"Authorization": suite.token,
-		},
-		PathParameters: map[string]string{
-			"id":         suite.eventID,
-			"scheduleId": suite.scheduleID,
-		},
-	}
-
-	s := resources.Schedule{}
-	response, err := s.Delete(req)
-
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
-}
-
-func (suite *FeedMyTripAPITestSuite) Test1000DeleteEvent() {
+func (suite *FeedMyTripAPITestSuite) Test0050GetAllEventSchedules() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
@@ -173,7 +139,64 @@ func (suite *FeedMyTripAPITestSuite) Test1000DeleteEvent() {
 		},
 	}
 
-	event := resources.Event{}
+	s := fmt.Schedule{}
+	response, err := s.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0060UpdateEventSchedule() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id":          suite.eventID,
+			"schedule_id": suite.scheduleID,
+		},
+		Body: `{
+			"annualy": true,
+			"weekDays": "0110111"
+		}`,
+	}
+
+	s := fmt.Schedule{}
+	response, err := s.Update(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0070DeleteEventSchedule() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id":          suite.eventID,
+			"schedule_id": suite.scheduleID,
+		},
+	}
+
+	s := fmt.Schedule{}
+	response, err := s.Delete(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0080DeleteEvent() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+		PathParameters: map[string]string{
+			"id": suite.eventID,
+		},
+	}
+
+	event := fmt.Event{}
 	response, err := event.Delete(req)
 
 	assert.Nil(suite.T(), err)

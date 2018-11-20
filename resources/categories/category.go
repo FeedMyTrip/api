@@ -71,7 +71,7 @@ func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	c.UpdatedBy = tokenUser.UserID
 	c.UpdatedDate = time.Now()
 
-	//TODO: c.Title.Translate()
+	c.Title.Translate()
 
 	conn, err := db.Connect()
 	if err != nil {

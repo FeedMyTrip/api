@@ -212,8 +212,16 @@ Resources:
       Runtime: go1.x
       CodeUri: ./deploy/events.zip
       Policies:
-        - AmazonDynamoDBFullAccess
+        - AWSLambdaVPCAccessExecutionRole
         - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-05bb4563990046df8
+        SubnetIds:
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         GetEvents:
@@ -232,6 +240,14 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events
             Method: post
+        GetEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /events/{id}
+            Method: get
         UpdateEvent:
           Type: Api
           Properties:
@@ -256,13 +272,21 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /events/{id}/schedules
             Method: post
+        GetEventSchedule:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /events/{id}/schedules
+            Method: get
         UpdateEventSchedule:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /events/{id}/schedules/{scheduleId}
+            Path: /events/{id}/schedules/{schedule_id}
             Method: patch
         DeleteEventSchedule:
           Type: Api
@@ -270,7 +294,7 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /events/{id}/schedules/{scheduleId}
+            Path: /events/{id}/schedules/{schedule_id}
             Method: delete
 
   HighlightsFunction:
@@ -352,10 +376,12 @@ Resources:
         - TranslateReadOnly
       VpcConfig:
         SecurityGroupIds:
-          - sg-06190a1b9857383df
+          - sg-05bb4563990046df8
         SubnetIds:
-          - subnet-92e3e7ca
-          - subnet-e1457686
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         GetCategories:
@@ -402,10 +428,12 @@ Resources:
         - TranslateReadOnly
       VpcConfig:
         SecurityGroupIds:
-          - sg-06190a1b9857383df
+          - sg-05bb4563990046df8
         SubnetIds:
-          - subnet-92e3e7ca
-          - subnet-e1457686
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         PostLocation:

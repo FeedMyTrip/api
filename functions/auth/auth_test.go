@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/feedmytrip/api/resources"
+	fmt "github.com/feedmytrip/api/resources/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -25,9 +25,9 @@ func (suite *FeedMyTripAPITestSuite) Test0010Login() {
 		Body: credentials,
 	}
 
-	auth := resources.Auth{}
+	auth := fmt.Auth{}
 	response, err := auth.Login(req)
-	user := resources.AuthUserResponse{}
+	user := fmt.UserResponse{}
 	json.Unmarshal([]byte(response.Body), &user)
 	suite.refreshToken = *user.Tokens.RefreshToken
 
@@ -42,7 +42,7 @@ func (suite *FeedMyTripAPITestSuite) Test0020RefreshToken() {
 		},
 	}
 
-	auth := resources.Auth{}
+	auth := fmt.Auth{}
 	response, err := auth.Refresh(req)
 
 	assert.Nil(suite.T(), err)

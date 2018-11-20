@@ -17,6 +17,10 @@ const (
 )
 
 const (
+	//TableEvent defines the events entities database table
+	TableEvent = "event"
+	//TableEventSchedule defines the events schedule entities database table
+	TableEventSchedule = "event_schedule"
 	//TableCategory defines the category entities database table
 	TableCategory = "category"
 	//TableLocation defines the location entities database table
@@ -256,12 +260,18 @@ func loadGeneric(sess *dbr.Session, table string, params map[string]string, obje
 				for index < len(meta.fields) && strings.Contains(meta.fields[index], ".") && parentField == meta.fields[index][0:strings.Index(meta.fields[index], ".")] {
 					key := meta.fields[index][strings.Index(meta.fields[index], ".")+1:]
 					embeddedResult[key] = getResultValue(result[index], types[index].String())
+					if embeddedResult[key] == nil {
+						fmt.Println("Field: " + key)
+					}
 					index++
 				}
 				mapJSON[parentField] = embeddedResult
 				i = index
 			} else {
 				mapJSON[f] = getResultValue(result[i], types[i].String())
+				if mapJSON[f] == nil {
+					fmt.Println("Field: " + f)
+				}
 			}
 		}
 		results = append(results, mapJSON)
