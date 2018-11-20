@@ -81,14 +81,20 @@ func (s *Schedule) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Insert(session, db.TableEventSchedule, *s)
+	err = db.Insert(tx, db.TableEventSchedule, *s)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(s, http.StatusCreated)
 }
 
@@ -114,14 +120,20 @@ func (s *Schedule) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Update(session, db.TableEventSchedule, request.PathParameters["schedule_id"], *s, jsonMap)
+	err = db.Update(tx, db.TableEventSchedule, request.PathParameters["schedule_id"], *s, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(nil, http.StatusOK)
 }
 

@@ -79,14 +79,20 @@ func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Insert(session, db.TableCategory, *c)
+	err = db.Insert(tx, db.TableCategory, *c)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(c, http.StatusCreated)
 }
 
@@ -112,14 +118,20 @@ func (c *Category) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Update(session, db.TableCategory, request.PathParameters["id"], *c, jsonMap)
+	err = db.Update(tx, db.TableCategory, request.PathParameters["id"], *c, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(c, http.StatusOK)
 }
 

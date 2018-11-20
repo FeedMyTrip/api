@@ -17,6 +17,16 @@ const (
 )
 
 const (
+	//TableTrip defines the trips entities database table
+	TableTrip = "trip"
+	//TableTripParticpant defines the trip participants entities database table
+	TableTripParticpant = "trip_participant"
+	//TableTripInvite defines the trip invites entities database table
+	TableTripInvite = "trip_invite"
+	//TableTripItinerary defines the trip itineraries entities database table
+	TableTripItinerary = "trip_itinerary"
+	//TableTripItineraryEvent defines the trip itinerary events entities database table
+	TableTripItineraryEvent = "trip_itinerary_event"
 	//TableEvent defines the events entities database table
 	TableEvent = "event"
 	//TableEventSchedule defines the events schedule entities database table

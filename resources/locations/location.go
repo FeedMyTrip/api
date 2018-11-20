@@ -49,14 +49,20 @@ func (l *Location) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Insert(session, db.TableLocation, *l)
+	err = db.Insert(tx, db.TableLocation, *l)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(l, http.StatusCreated)
 }
 
@@ -98,14 +104,20 @@ func (l *Location) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Update(session, db.TableLocation, request.PathParameters["id"], *l, jsonMap)
+	err = db.Update(tx, db.TableLocation, request.PathParameters["id"], *l, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(l, http.StatusOK)
 }
 

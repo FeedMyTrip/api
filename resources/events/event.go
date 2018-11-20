@@ -86,6 +86,10 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 		return common.APIError(http.StatusBadRequest, err)
 	}
 
+	if e.Title.IsEmpty() {
+		return common.APIError(http.StatusBadRequest, errors.New("invalid request empty title"))
+	}
+
 	e.ID = uuid.New().String()
 	e.Active = true
 	e.Title.ID = uuid.New().String()
@@ -107,14 +111,20 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Insert(session, db.TableEvent, *e)
+	err = db.Insert(tx, db.TableEvent, *e)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	tx.Commit()
 	return common.APIResponse(e, http.StatusCreated)
 }
 
@@ -138,19 +148,19 @@ func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGateway
 		if field != "title" && field != "description" {
 			return common.APIError(http.StatusBadRequest, errors.New("invalid translation field"))
 		}
-		t := shared.Translation{}
+		translation := shared.Translation{}
 		if val, ok := jsonMap[field+".en"]; ok {
-			t.EN = val.(string)
-		} else if val, ok := jsonMap[field+".es"]; ok {
-			t.ES = val.(string)
+			translation.EN = val.(string)
 		} else if val, ok := jsonMap[field+".pt"]; ok {
-			t.PT = val.(string)
+			translation.PT = val.(string)
+		} else if val, ok := jsonMap[field+".es"]; ok {
+			translation.ES = val.(string)
 		}
-		if !t.IsEmpty() {
-			t.Translate()
-			jsonMap[field+".en"] = t.EN
-			jsonMap[field+".es"] = t.ES
-			jsonMap[field+".pt"] = t.PT
+		if !translation.IsEmpty() {
+			translation.Translate()
+			jsonMap[field+".en"] = translation.EN
+			jsonMap[field+".es"] = translation.ES
+			jsonMap[field+".pt"] = translation.PT
 		}
 	}
 
@@ -160,15 +170,27 @@ func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGateway
 	}
 
 	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
 	defer session.Close()
 	defer conn.Close()
 
-	err = db.Update(session, db.TableEvent, request.PathParameters["id"], *e, jsonMap)
+	err = db.Update(tx, db.TableEvent, request.PathParameters["id"], *e, jsonMap)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return common.APIResponse(nil, http.StatusOK)
+	tx.Commit()
+
+	result, err := db.QueryOne(session, db.TableEvent, request.PathParameters["id"], Event{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //Delete removes event from the database

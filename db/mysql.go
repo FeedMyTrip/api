@@ -27,6 +27,20 @@ func Connect() (*dbr.Connection, error) {
 	return conn, nil
 }
 
+type valid struct {
+	Total int `json:"total" db:"total"`
+}
+
+//Validate executes a select query and return a integer Total
+func Validate(session *dbr.Session, query string, values ...interface{}) (int, error) {
+	v := valid{Total: 0}
+	_, err := session.SelectBySql(query, values).Load(v)
+	if err != nil {
+		return -1, err
+	}
+	return v.Total, nil
+}
+
 //QueryOne load one record from the database
 func QueryOne(session *dbr.Session, table string, id string, object interface{}) (interface{}, error) {
 	objectMetadata := parseObjectTagsRecursively("", table, object)
@@ -71,14 +85,8 @@ func Select(session *dbr.Session, table string, params map[string]string, object
 }
 
 //Insert insert an new object in the database
-func Insert(session *dbr.Session, table string, object interface{}) error {
-	tx, err := session.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.RollbackUnlessCommitted()
-
-	_, err = tx.InsertInto(table).Columns(getTagFromInterface(object, "db", "")...).Record(object).Exec()
+func Insert(tx *dbr.Tx, table string, object interface{}) error {
+	_, err := tx.InsertInto(table).Columns(getTagFromInterface(object, "db", "")...).Record(object).Exec()
 	if err != nil {
 		return err
 	}
@@ -96,22 +104,14 @@ func Insert(session *dbr.Session, table string, object interface{}) error {
 			}
 		}
 	}
-
-	tx.Commit()
 	return nil
 }
 
 //Update change record attributes in the database
-func Update(session *dbr.Session, table, id string, object interface{}, values map[string]interface{}) error {
-	tx, err := session.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.RollbackUnlessCommitted()
-
+func Update(tx *dbr.Tx, table, id string, object interface{}, values map[string]interface{}) error {
 	objectMap := parseObjectFieldsToUpdatableMap("", object, values)
 	if len(objectMap) > 0 {
-		_, err = tx.Update(table).SetMap(objectMap).Where(dbr.Eq(table+".id", id)).Exec()
+		_, err := tx.Update(table).SetMap(objectMap).Where(dbr.Eq(table+".id", id)).Exec()
 		if err != nil {
 			return err
 		}
@@ -129,7 +129,7 @@ func Update(session *dbr.Session, table, id string, object interface{}, values m
 			translationObject := field.Interface()
 			objectMap := parseObjectFieldsToUpdatableMap(tagAlias, translationObject, values)
 			if len(objectMap) > 0 {
-				_, err = tx.Update(TableTranslation).SetMap(objectMap).Where(dbr.And(
+				_, err := tx.Update(TableTranslation).SetMap(objectMap).Where(dbr.And(
 					dbr.Eq("parent_id", id),
 					dbr.Eq("field", tagAlias),
 				)).Exec()
@@ -140,7 +140,6 @@ func Update(session *dbr.Session, table, id string, object interface{}, values m
 		}
 	}
 
-	tx.Commit()
 	return nil
 }
 
