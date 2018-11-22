@@ -44,7 +44,7 @@ Resources:
       Runtime: go1.x
       CodeUri: ./deploy/users.zip
       Policies:
-        - AmazonDynamoDBFullAccess
+        - AWSLambdaVPCAccessExecutionRole
         - TranslateReadOnly
       VpcConfig:
         SecurityGroupIds:
@@ -64,7 +64,7 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /users
             Method: get
-        PostUsers:
+        PostUser:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
@@ -96,7 +96,7 @@ Resources:
       Runtime: go1.x
       CodeUri: ./deploy/trips.zip
       Policies:
-        - AmazonDynamoDBFullAccess
+        - AWSLambdaVPCAccessExecutionRole
         - TranslateReadOnly
       VpcConfig:
         SecurityGroupIds:
@@ -368,7 +368,7 @@ Resources:
       Runtime: go1.x
       CodeUri: ./deploy/highlights.zip
       Policies:
-        - AmazonDynamoDBFullAccess
+        - AWSLambdaVPCAccessExecutionRole
         - TranslateReadOnly
       VpcConfig:
         SecurityGroupIds:
