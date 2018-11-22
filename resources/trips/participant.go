@@ -63,6 +63,14 @@ func (p *Participant) GetAll(request events.APIGatewayProxyRequest) (events.APIG
 		}
 	}
 
+	if request.QueryStringParameters == nil {
+		request.QueryStringParameters = map[string]string{
+			"trip_id": request.PathParameters["id"],
+		}
+	} else {
+		request.QueryStringParameters["trip_id"] = request.PathParameters["id"]
+	}
+
 	result, err := db.Select(session, db.TableTripParticipant, request.QueryStringParameters, Participant{})
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)

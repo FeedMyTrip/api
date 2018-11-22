@@ -193,7 +193,7 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 			return common.APIError(http.StatusInternalServerError, err)
 		}
 		if total <= 0 {
-			return common.APIError(http.StatusForbidden, errors.New("only trip participant can access this resource"))
+			return common.APIError(http.StatusForbidden, errors.New("only trip admin or owner can make changes"))
 		}
 	}
 

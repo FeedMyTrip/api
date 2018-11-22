@@ -74,6 +74,14 @@ Resources:
       Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-05bb4563990046df8
+        SubnetIds:
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         GetTrips:
@@ -108,6 +116,14 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips/{id}
             Method: delete
+        GetParticipants:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/participants
+            Method: get
         PostParticipant:
           Type: Api
           Properties:
@@ -122,7 +138,7 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/participants/{participantId}
+            Path: /trips/{id}/participants/{participant_id}
             Method: patch
         DeleteParticipant:
           Type: Api
@@ -130,8 +146,16 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/participants/{participantId}
+            Path: /trips/{id}/participants/{participant_id}
             Method: delete
+        GetInvites:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/invites
+            Method: get
         PostInvite:
           Type: Api
           Properties:
@@ -146,8 +170,16 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/invites/{inviteId}
+            Path: /trips/{id}/invites/{invite_id}
             Method: delete
+        GetItineraries:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/itineraries
+            Method: get
         PostItinerary:
           Type: Api
           Properties:
@@ -162,7 +194,7 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/itineraries/{itineraryId}
+            Path: /trips/{id}/itineraries/{itinerary_id}
             Method: patch
         DeleteItinerary:
           Type: Api
@@ -170,7 +202,7 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/itineraries/{itineraryId}
+            Path: /trips/{id}/itineraries/{itinerary_id}
             Method: delete
         PostItineraryAddGlobalEvent:
           Type: Api
@@ -178,15 +210,23 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/itineraries/{itineraryId}/add/{globalEventId}
+            Path: /trips/{id}/itineraries/{itinerary_id}/add/{global_event_id}
             Method: post
+        GetItineraryEvents:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}/itineraries/{itinerary_id}/events
+            Method: get
         PostItineraryNewEvent:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/itineraries/{itineraryId}/events
+            Path: /trips/{id}/itineraries/{itinerary_id}/events
             Method: post
         UpdateItineraryEvent:
           Type: Api
@@ -194,7 +234,7 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/itineraries/{itineraryId}/events/{eventId}
+            Path: /trips/{id}/itineraries/{itinerary_id}/events/{event_id}
             Method: patch
         DeleteItineraryEvent:
           Type: Api
@@ -202,7 +242,7 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /trips/{id}/itineraries/{itineraryId}/events/{eventId}
+            Path: /trips/{id}/itineraries/{itinerary_id}/events/{event_id}
             Method: delete
 
   EventsFunction:
