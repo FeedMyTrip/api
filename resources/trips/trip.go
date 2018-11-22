@@ -22,15 +22,17 @@ type Trip struct {
 	Description shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip.id and title.field = 'description'" embedded:"true" persist:"true"`
 	Scope       string             `json:"scope" db:"scope" lock:"true"`
 	CountryID   string             `json:"country_id" db:"country_id"`
-	Country     shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = event.country_id and country.field = 'title'" embedded:"true"`
+	Country     shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = trip.country_id and country.field = 'title'" embedded:"true"`
 	RegionID    string             `json:"region_id" db:"region_id"`
-	Region      shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = event.region_id and region.field = 'title'" embedded:"true"`
+	Region      shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = trip.region_id and region.field = 'title'" embedded:"true"`
 	CityID      string             `json:"city_id" db:"city_id"`
-	City        shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = event.city_id and city.field = 'title'" embedded:"true"`
+	City        shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = trip.city_id and city.field = 'title'" embedded:"true"`
 	CreatedBy   string             `json:"created_by" db:"created_by" lock:"true"`
 	CreatedDate time.Time          `json:"created_date" db:"created_date" lock:"true"`
 	UpdatedBy   string             `json:"updated_by" db:"updated_by"`
 	UpdatedDate time.Time          `json:"updated_date" db:"updated_date"`
+	CreatedUser shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = trip.created_by" embedded:"true"`
+	UpdatedUser shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = trip.updated_by" embedded:"true"`
 }
 
 //Get return a trip
@@ -89,11 +91,6 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusBadRequest, errors.New("invalid request empty title"))
 	}
 
-	t.Scope = "system"
-	if !tokenUser.IsAdmin() {
-		t.Scope = "user"
-	}
-
 	t.ID = uuid.New().String()
 	t.Title.ID = uuid.New().String()
 	t.Title.Table = db.TableTrip
@@ -108,7 +105,11 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	t.UpdatedBy = tokenUser.UserID
 	t.UpdatedDate = time.Now()
 
-	t.Title.Translate()
+	t.Scope = "user"
+	if tokenUser.IsAdmin() {
+		t.Scope = "system"
+		t.Title.Translate()
+	}
 
 	t.ItineraryID = uuid.New().String()
 	defaultItinerary := Itinerary{}
@@ -173,7 +174,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	return common.APIResponse(t, http.StatusCreated)
 }
 
-//Update change event attributes in the database
+//Update change trip attributes in the database
 func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	conn, err := db.Connect()
 	defer conn.Close()

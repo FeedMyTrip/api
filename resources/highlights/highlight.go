@@ -22,12 +22,20 @@ type Highlight struct {
 	Active       bool               `json:"active" db:"active"`
 	ScheduleDate time.Time          `json:"schedule_date" db:"schedule_date"`
 	Filter       string             `json:"filter" db:"filter"`
-	Trips        string             `json:"trip_ids" db:"trip_ids"`
-	Events       string             `json:"event_ids" db:"event_ids"`
+	CountryID    string             `json:"country_id" db:"country_id"`
+	Country      shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = highlight.country_id and country.field = 'title'" embedded:"true"`
+	RegionID     string             `json:"region_id" db:"region_id"`
+	Region       shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = highlight.region_id and region.field = 'title'" embedded:"true"`
+	CityID       string             `json:"city_id" db:"city_id"`
+	City         shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = highlight.city_id and city.field = 'title'" embedded:"true"`
+	Trips        string             `json:"trips" db:"trips"`
+	Events       string             `json:"events" db:"events"`
 	CreatedBy    string             `json:"created_by" db:"created_by" lock:"true"`
 	CreatedDate  time.Time          `json:"created_date" db:"created_date" lock:"true"`
 	UpdatedBy    string             `json:"updated_by" db:"updated_by"`
 	UpdatedDate  time.Time          `json:"updated_date" db:"updated_date"`
+	CreatedUser  shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = highlight.created_by" embedded:"true"`
+	UpdatedUser  shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = highlight.updated_by" embedded:"true"`
 }
 
 //GetAll returns all highlights available in the database

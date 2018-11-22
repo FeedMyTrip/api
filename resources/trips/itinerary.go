@@ -26,6 +26,8 @@ type Itinerary struct {
 	CreatedDate time.Time          `json:"created_date" db:"created_date" lock:"true"`
 	UpdatedBy   string             `json:"updated_by" db:"updated_by"`
 	UpdatedDate time.Time          `json:"updated_date" db:"updated_date"`
+	CreatedUser shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = trip_itinerary.created_by" embedded:"true"`
+	UpdatedUser shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = trip_itinerary.updated_by" embedded:"true"`
 }
 
 //GetAll returns all itineraries from the trip

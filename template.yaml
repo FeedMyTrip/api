@@ -46,6 +46,14 @@ Resources:
       Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-05bb4563990046df8
+        SubnetIds:
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         GetUsers:
@@ -54,16 +62,32 @@ Resources:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /users/{id}
+            Path: /users
             Method: get
-        UpdateFavorite:
+        PostUsers:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
-            Path: /users/favorites/{contentType}/{contentId}
+            Path: /users
             Method: post
+        UpdateUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /users/{id}
+            Method: patch
+        DeleteUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /users/{id}
+            Method: delete
 
   TripsFunction:
     Type: AWS::Serverless::Function
@@ -372,14 +396,6 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights
             Method: post
-        GetHighlight:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth:
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /highlights/{id}
-            Method: get
         UpdateHighlight:
           Type: Api
           Properties:

@@ -43,6 +43,9 @@ type ItineraryEvent struct {
 	EvaluatedBy         string             `json:"evaluated_by" db:"evaluated_by"`
 	EvaluatedDate       time.Time          `json:"evaluated_date" db:"evaluated_date"`
 	EvaluatedComment    string             `json:"evaluated_comment" db:"evaluated_comment"`
+	CreatedUser         shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = trip_itinerary_event.created_by" embedded:"true"`
+	UpdatedUser         shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = trip_itinerary_event.updated_by" embedded:"true"`
+	EvaluatedUser       shared.User        `json:"evaluated_user" table:"user" alias:"evaluated_user" on:"evaluated_user.id = trip_itinerary_event.evaluated_by" embedded:"true"`
 }
 
 //Get return an itinerary event

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/feedmytrip/api/common"
 	"github.com/feedmytrip/api/db"
+	"github.com/feedmytrip/api/resources/shared"
 	"github.com/google/uuid"
 )
 
@@ -27,14 +28,16 @@ const (
 
 // Participant represents a user that is participating in the trip
 type Participant struct {
-	ID          string    `json:"id" db:"id" lock:"true"`
-	TripID      string    `json:"trip_id" db:"trip_id" lock:"true"`
-	UserID      string    `json:"user_id" db:"user_id" lock:"true"`
-	Role        string    `json:"role" db:"role"`
-	CreatedBy   string    `json:"created_by" db:"created_by" lock:"true"`
-	CreatedDate time.Time `json:"created_date" db:"created_date" lock:"true"`
-	UpdatedBy   string    `json:"updated_by" db:"updated_by"`
-	UpdatedDate time.Time `json:"updated_date" db:"updated_date"`
+	ID          string      `json:"id" db:"id" lock:"true"`
+	TripID      string      `json:"trip_id" db:"trip_id" lock:"true"`
+	UserID      string      `json:"user_id" db:"user_id" lock:"true"`
+	Role        string      `json:"role" db:"role"`
+	CreatedBy   string      `json:"created_by" db:"created_by" lock:"true"`
+	CreatedDate time.Time   `json:"created_date" db:"created_date" lock:"true"`
+	UpdatedBy   string      `json:"updated_by" db:"updated_by"`
+	UpdatedDate time.Time   `json:"updated_date" db:"updated_date"`
+	CreatedUser shared.User `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = trip_participant.created_by" embedded:"true"`
+	UpdatedUser shared.User `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = trip_participant.updated_by" embedded:"true"`
 }
 
 //GetAll returns all participant a from the trip

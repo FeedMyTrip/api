@@ -9,24 +9,27 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/feedmytrip/api/common"
 	"github.com/feedmytrip/api/db"
+	"github.com/feedmytrip/api/resources/shared"
 	"github.com/google/uuid"
 )
 
 //Schedule represents all schedules and availabilities for an event
 type Schedule struct {
-	ID          string    `json:"id" db:"id" lock:"true"`
-	EventID     string    `json:"event_id" db:"event_id" lock:"true"`
-	Annually    bool      `json:"annually" db:"annually"`
-	FixedDate   bool      `json:"fixed_date" db:"fixed_date"`
-	FixedPeriod bool      `json:"fixed_period" db:"fixed_period"`
-	Closed      bool      `json:"closed" db:"closed"`
-	StartDate   time.Time `json:"start_date" db:"start_date"`
-	EndDate     time.Time `json:"end_date" db:"end_date"`
-	WeekDays    string    `json:"week_days" db:"week_days"`
-	CreatedBy   string    `json:"created_by" db:"created_by" lock:"true"`
-	CreatedDate time.Time `json:"created_date" db:"created_date" lock:"true"`
-	UpdatedBy   string    `json:"updated_by" db:"updated_by"`
-	UpdatedDate time.Time `json:"updated_date" db:"updated_date"`
+	ID          string      `json:"id" db:"id" lock:"true"`
+	EventID     string      `json:"event_id" db:"event_id" lock:"true"`
+	Annually    bool        `json:"annually" db:"annually"`
+	FixedDate   bool        `json:"fixed_date" db:"fixed_date"`
+	FixedPeriod bool        `json:"fixed_period" db:"fixed_period"`
+	Closed      bool        `json:"closed" db:"closed"`
+	StartDate   time.Time   `json:"start_date" db:"start_date"`
+	EndDate     time.Time   `json:"end_date" db:"end_date"`
+	WeekDays    string      `json:"week_days" db:"week_days"`
+	CreatedBy   string      `json:"created_by" db:"created_by" lock:"true"`
+	CreatedDate time.Time   `json:"created_date" db:"created_date" lock:"true"`
+	UpdatedBy   string      `json:"updated_by" db:"updated_by"`
+	UpdatedDate time.Time   `json:"updated_date" db:"updated_date"`
+	CreatedUser shared.User `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = event_schedule.created_by" embedded:"true"`
+	UpdatedUser shared.User `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = event_schedule.updated_by" embedded:"true"`
 }
 
 //GetAll returns all schedules for an event available in the database

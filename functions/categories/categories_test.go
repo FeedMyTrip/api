@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/auth"
 	"github.com/feedmytrip/api/resources/categories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +23,7 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 		"username": "test_admin",
 		"password": "fmt12345"
 	}`
-	user, _ := resources.LoginUser(credentials)
+	user, _ := auth.LoginUser(credentials)
 	suite.token = *user.Tokens.AccessToken
 }
 

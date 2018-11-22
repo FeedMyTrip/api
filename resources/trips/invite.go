@@ -10,17 +10,19 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/feedmytrip/api/common"
 	"github.com/feedmytrip/api/db"
+	"github.com/feedmytrip/api/resources/shared"
 	"github.com/gocraft/dbr"
 	"github.com/google/uuid"
 )
 
 //Invite represents an invite to a Trip
 type Invite struct {
-	ID          string    `json:"id" db:"id" lock:"true"`
-	TripID      string    `json:"trip_id" db:"trip_id" lock:"true"`
-	Email       string    `json:"email" db:"email" lock:"true"`
-	CreatedBy   string    `json:"created_by" db:"created_by" lock:"true"`
-	CreatedDate time.Time `json:"created_date" db:"created_date" lock:"true"`
+	ID          string      `json:"id" db:"id" lock:"true"`
+	TripID      string      `json:"trip_id" db:"trip_id" lock:"true"`
+	Email       string      `json:"email" db:"email" lock:"true"`
+	CreatedBy   string      `json:"created_by" db:"created_by" lock:"true"`
+	CreatedDate time.Time   `json:"created_date" db:"created_date" lock:"true"`
+	CreatedUser shared.User `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = trip_invite.created_by" embedded:"true"`
 }
 
 //GetAll returns all itineraries from the trip
