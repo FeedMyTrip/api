@@ -346,6 +346,14 @@ Resources:
       Policies:
         - AmazonDynamoDBFullAccess
         - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-05bb4563990046df8
+        SubnetIds:
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         GetHighlights:
@@ -387,22 +395,6 @@ Resources:
             Auth:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}
-            Method: delete
-        AddHighlightContent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth:
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /highlights/{id}/add/{contentType}/{contentId}
-            Method: post
-        RemoveHighlightContent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth:
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /highlights/{id}/remove/{contentType}/{contentId}
             Method: delete
 
   CategoriesFunction:

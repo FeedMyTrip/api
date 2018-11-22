@@ -42,6 +42,18 @@ func Validate(session *dbr.Session, column []string, table string, filters dbr.B
 	return v.Total, nil
 }
 
+//QueryByIDs load every record in the ids from the database
+func QueryByIDs(session *dbr.Session, table string, ids []string, object interface{}) (interface{}, error) {
+	objectMetadata := parseObjectTagsRecursively("", table, object)
+
+	results, err := loadGeneric(session, table, map[string]string{}, object, objectMetadata, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 //QueryOne load one record from the database
 func QueryOne(session *dbr.Session, table string, id string, object interface{}) (interface{}, error) {
 	objectMetadata := parseObjectTagsRecursively("", table, object)
@@ -49,7 +61,7 @@ func QueryOne(session *dbr.Session, table string, id string, object interface{})
 	params := map[string]string{
 		"id": id,
 	}
-	result, err := loadGeneric(session, table, params, object, objectMetadata)
+	result, err := loadGeneric(session, table, params, object, objectMetadata, []string{})
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +88,7 @@ func Select(session *dbr.Session, table string, params map[string]string, object
 		return dbresult, nil
 	}
 
-	result, err := loadGeneric(session, table, params, object, objectMetadata)
+	result, err := loadGeneric(session, table, params, object, objectMetadata, []string{})
 	if err != nil {
 		dbresult.Errors = append(dbresult.Errors, err)
 	}

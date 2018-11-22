@@ -21,6 +21,12 @@ type Trip struct {
 	Title       shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = trip.id and title.field = 'title'" embedded:"true" persist:"true"`
 	Description shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip.id and title.field = 'description'" embedded:"true" persist:"true"`
 	Scope       string             `json:"scope" db:"scope" lock:"true"`
+	CountryID   string             `json:"country_id" db:"country_id"`
+	Country     shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = event.country_id and country.field = 'title'" embedded:"true"`
+	RegionID    string             `json:"region_id" db:"region_id"`
+	Region      shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = event.region_id and region.field = 'title'" embedded:"true"`
+	CityID      string             `json:"city_id" db:"city_id"`
+	City        shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = event.city_id and city.field = 'title'" embedded:"true"`
 	CreatedBy   string             `json:"created_by" db:"created_by" lock:"true"`
 	CreatedDate time.Time          `json:"created_date" db:"created_date" lock:"true"`
 	UpdatedBy   string             `json:"updated_by" db:"updated_by"`

@@ -1,1 +1,197 @@
 package highlights
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/feedmytrip/api/common"
+	"github.com/feedmytrip/api/db"
+	"github.com/feedmytrip/api/resources/shared"
+	"github.com/google/uuid"
+)
+
+//Highlight represents a group of trips and events to emphasize
+type Highlight struct {
+	ID           string             `json:"id" db:"id" lock:"true"`
+	Title        shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = highlight.id and title.field = 'title'" embedded:"true" persist:"true"`
+	Description  shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = highlight.id and title.field = 'description'" embedded:"true" persist:"true"`
+	ImagePath    string             `json:"image_path" db:"image_path"`
+	Active       bool               `json:"active" db:"active"`
+	ScheduleDate time.Time          `json:"schedule_date" db:"schedule_date"`
+	Filter       string             `json:"filter" db:"filter"`
+	Trips        string             `json:"trip_ids" db:"trip_ids"`
+	Events       string             `json:"event_ids" db:"event_ids"`
+	CreatedBy    string             `json:"created_by" db:"created_by" lock:"true"`
+	CreatedDate  time.Time          `json:"created_date" db:"created_date" lock:"true"`
+	UpdatedBy    string             `json:"updated_by" db:"updated_by"`
+	UpdatedDate  time.Time          `json:"updated_date" db:"updated_date"`
+}
+
+//GetAll returns all highlights available in the database
+func (h *Highlight) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	conn, err := db.Connect()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	session := conn.NewSession(nil)
+	defer session.Close()
+	defer conn.Close()
+
+	result, err := db.Select(session, db.TableHighlight, request.QueryStringParameters, Highlight{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
+}
+
+//SaveNew creates a new highlight
+func (h *Highlight) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	tokenUser := common.GetTokenUser(request)
+	if !tokenUser.IsAdmin() {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
+	err := json.Unmarshal([]byte(request.Body), h)
+	if err != nil {
+		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	if h.Title.IsEmpty() {
+		return common.APIError(http.StatusBadRequest, errors.New("invalid request empty title"))
+	}
+
+	h.ID = uuid.New().String()
+	h.Active = true
+	h.Title.ID = uuid.New().String()
+	h.Title.Table = db.TableHighlight
+	h.Title.Field = "title"
+	h.Title.ParentID = h.ID
+	h.Description.ID = uuid.New().String()
+	h.Description.Table = db.TableHighlight
+	h.Description.Field = "description"
+	h.Description.ParentID = h.ID
+	h.CreatedBy = tokenUser.UserID
+	h.CreatedDate = time.Now()
+	h.UpdatedBy = tokenUser.UserID
+	h.UpdatedDate = time.Now()
+
+	h.Title.Translate()
+
+	conn, err := db.Connect()
+	defer conn.Close()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	session := conn.NewSession(nil)
+	defer session.Close()
+
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
+
+	err = db.Insert(tx, db.TableHighlight, *h)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	tx.Commit()
+	return common.APIResponse(h, http.StatusCreated)
+}
+
+//Update change highlight attributes in the database
+func (h *Highlight) Update(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	tokenUser := common.GetTokenUser(request)
+	if !tokenUser.IsAdmin() {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
+	jsonMap := make(map[string]interface{})
+	err := json.Unmarshal([]byte(request.Body), &jsonMap)
+	if err != nil {
+		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	jsonMap["updated_by"] = tokenUser.UserID
+	jsonMap["updated_date"] = time.Now()
+
+	if field, ok := request.QueryStringParameters["translate"]; ok {
+		if field != "title" && field != "description" {
+			return common.APIError(http.StatusBadRequest, errors.New("invalid translation field"))
+		}
+		translation := shared.Translation{}
+		if val, ok := jsonMap[field+".en"]; ok {
+			translation.EN = val.(string)
+		} else if val, ok := jsonMap[field+".pt"]; ok {
+			translation.PT = val.(string)
+		} else if val, ok := jsonMap[field+".es"]; ok {
+			translation.ES = val.(string)
+		}
+		if !translation.IsEmpty() {
+			translation.Translate()
+			jsonMap[field+".en"] = translation.EN
+			jsonMap[field+".es"] = translation.ES
+			jsonMap[field+".pt"] = translation.PT
+		}
+	}
+
+	conn, err := db.Connect()
+	defer conn.Close()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	session := conn.NewSession(nil)
+	defer session.Close()
+
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
+
+	err = db.Update(tx, db.TableHighlight, request.PathParameters["id"], *h, jsonMap)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	tx.Commit()
+
+	result, err := db.QueryOne(session, db.TableHighlight, request.PathParameters["id"], Highlight{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
+}
+
+//Delete removes highlight from the database
+func (h *Highlight) Delete(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	tokenUser := common.GetTokenUser(request)
+	if !tokenUser.IsAdmin() {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
+	}
+
+	conn, err := db.Connect()
+	defer conn.Close()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	session := conn.NewSession(nil)
+	defer session.Close()
+
+	err = db.Delete(session, db.TableHighlight, request.PathParameters["id"])
+	if err != nil {
+		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	return common.APIResponse(nil, http.StatusOK)
+}

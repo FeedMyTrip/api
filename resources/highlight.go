@@ -10,24 +10,28 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/feedmytrip/api/common"
 	"github.com/feedmytrip/api/db"
+	"github.com/feedmytrip/api/resources/shared"
 	"github.com/google/uuid"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
 //Highlight represents a group of trips and events to emphasize
 type Highlight struct {
-	HighlightID  string      `json:"highlightId"`
-	Title        Translation `json:"title"`
-	Description  Translation `json:"description"`
-	ImagePath    string      `json:"imagePath"`
-	Trips        []string    `json:"trips"`
-	Events       []string    `json:"events"`
-	Active       bool        `json:"active"`
-	ScheduleDate time.Time   `json:"scheduleDate"`
-	CountryID    string      `json:"countryId"`
-	RegionID     string      `json:"regionId"`
-	CityID       string      `json:"cityId"`
-	Audit        *Audit      `json:"audit"`
+	HighlightID  string             `json:"highlightId"`
+	Title        Translation        `json:"title"`
+	Description  Translation        `json:"description"`
+	ImagePath    string             `json:"imagePath"`
+	Trips        []string           `json:"trips"`
+	Events       []string           `json:"events"`
+	Active       bool               `json:"active"`
+	ScheduleDate time.Time          `json:"scheduleDate"`
+	CountryID    string             `json:"country_id" db:"country_id"`
+	Country      shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = event.country_id and country.field = 'title'" embedded:"true"`
+	RegionID     string             `json:"region_id" db:"region_id"`
+	Region       shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = event.region_id and region.field = 'title'" embedded:"true"`
+	CityID       string             `json:"city_id" db:"city_id"`
+	City         shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = event.city_id and city.field = 'title'" embedded:"true"`
+	Audit        *Audit             `json:"audit"`
 }
 
 //SaveNew creates a new highlight

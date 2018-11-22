@@ -17,6 +17,8 @@ const (
 )
 
 const (
+	//TableHighlight defines the highlights entities database table
+	TableHighlight = "highlight"
 	//TableTrip defines the trips entities database table
 	TableTrip = "trip"
 	//TableTripParticipant defines the trip participants entities database table
@@ -35,6 +37,8 @@ const (
 	TableCategory = "category"
 	//TableLocation defines the location entities database table
 	TableLocation = "location"
+	//TableUser defines the users entities database table
+	TableUser = "user"
 	//TableTranslation defines the translation entities database table
 	TableTranslation = "translation"
 )
@@ -155,7 +159,7 @@ func loadTableMetadata(session *dbr.Session, table string, params map[string]str
 	return m, err
 }
 
-func loadGeneric(sess *dbr.Session, table string, params map[string]string, object interface{}, meta objectMetadata) ([]map[string]interface{}, error) {
+func loadGeneric(sess *dbr.Session, table string, params map[string]string, object interface{}, meta objectMetadata, ids []string) ([]map[string]interface{}, error) {
 
 	stmt := sess.Select(meta.columns...).From(table)
 	if len(meta.joins) > 0 {
@@ -213,6 +217,14 @@ func loadGeneric(sess *dbr.Session, table string, params map[string]string, obje
 		stmt.Where(dbr.And(otherFilters...))
 	} else if hasFilter && len(otherFilters) > 0 {
 		stmt.Where(dbr.And(filterOr, dbr.And(otherFilters...)))
+	}
+
+	if len(ids) > 0 {
+		idsInterface := make([]interface{}, len(ids))
+		for i, v := range ids {
+			idsInterface[i] = v
+		}
+		stmt.Where(table+".id IN ?", idsInterface...)
 	}
 
 	if val, ok := params["page"]; ok {

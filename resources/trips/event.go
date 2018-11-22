@@ -26,15 +26,15 @@ type ItineraryEvent struct {
 	BeginOffset         int                `json:"begin_offset" db:"begin_offset"`
 	Duration            int                `json:"duration" db:"duration"`
 	MainCategoryID      string             `json:"main_category_id" db:"main_category_id"`
-	MainCategory        shared.Translation `json:"main_category" table:"translation" alias:"main_category" on:"main_category.parent_id = trip_itinerary_event.main_category_id and title.field = 'title'" embedded:"true"`
+	MainCategory        shared.Translation `json:"main_category" table:"translation" alias:"main_category" on:"main_category.parent_id = trip_itinerary_event.main_category_id and main_category.field = 'title'" embedded:"true"`
 	SecondaryCategoryID string             `json:"secondary_category_id" db:"secondary_category_id"`
-	SecondaryCategory   shared.Translation `json:"secondary_category" table:"translation" alias:"secondary_category" on:"secondary_category.parent_id = trip_itinerary_event.secondary_category_id and title.field = 'title'" embedded:"true"`
+	SecondaryCategory   shared.Translation `json:"secondary_category" table:"translation" alias:"secondary_category" on:"secondary_category.parent_id = trip_itinerary_event.secondary_category_id and secondary_category.field = 'title'" embedded:"true"`
 	CountryID           string             `json:"country_id" db:"country_id"`
-	Country             shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = trip_itinerary_event.country_id and title.field = 'title'" embedded:"true"`
+	Country             shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = trip_itinerary_event.country_id and country.field = 'title'" embedded:"true"`
 	RegionID            string             `json:"region_id" db:"region_id"`
-	Region              shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = trip_itinerary_event.region_id and title.field = 'title'" embedded:"true"`
+	Region              shared.Translation `json:"region" table:"translation" alias:"region" on:"region.parent_id = trip_itinerary_event.region_id and region.field = 'title'" embedded:"true"`
 	CityID              string             `json:"city_id" db:"city_id"`
-	City                shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = trip_itinerary_event.city_id and title.field = 'title'" embedded:"true"`
+	City                shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = trip_itinerary_event.city_id and city.field = 'title'" embedded:"true"`
 	Address             string             `json:"address" db:"address"`
 	CreatedBy           string             `json:"created_by" db:"created_by" lock:"true"`
 	CreatedDate         time.Time          `json:"created_date" db:"created_date" lock:"true"`

@@ -6,15 +6,10 @@ import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/feedmytrip/api/common"
-	"github.com/feedmytrip/api/db"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/auth"
+	"github.com/feedmytrip/api/resources/highlights"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-)
-
-const (
-	TableName = "HighlightsTest"
 )
 
 type FeedMyTripAPITestSuite struct {
@@ -24,14 +19,11 @@ type FeedMyTripAPITestSuite struct {
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
-	common.HighlightsTable = TableName
-	db.CreateTable(TableName, "highlightId", 1, 1)
-
 	credentials := `{
 		"username": "test_admin",
 		"password": "fmt12345"
 	}`
-	user, _ := resources.LoginUser(credentials)
+	user, _ := auth.LoginUser(credentials)
 	suite.token = *user.Tokens.AccessToken
 }
 
@@ -49,106 +41,64 @@ func (suite *FeedMyTripAPITestSuite) Test0010SaveNewHighlight() {
 		}`,
 	}
 
-	highlight := resources.Highlight{}
+	highlight := highlights.Highlight{}
 	response, err := highlight.SaveNew(req)
 	json.Unmarshal([]byte(response.Body), &highlight)
-	suite.HighlightID = highlight.HighlightID
+	suite.HighlightID = highlight.ID
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0020UpdateHighlight() {
+func (suite *FeedMyTripAPITestSuite) Test0020GetAllHighlights() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+	}
+
+	highlight := highlights.Highlight{}
+	response, err := highlight.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0030UpdateHighlight() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"cityId": "423720be-4777-4f15-a569-a4fcc7b0ef92"
+			"filter": "rome"
 		}`,
 		PathParameters: map[string]string{
 			"id": suite.HighlightID,
 		},
 	}
 
-	highlight := resources.Highlight{}
+	highlight := highlights.Highlight{}
 	response, err := highlight.Update(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0030HighlightAddEvent() {
+func (suite *FeedMyTripAPITestSuite) Test0040DeleteHighlight() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
+		Body: `{
+			"filter": "rome"
+		}`,
 		PathParameters: map[string]string{
-			"id":          suite.HighlightID,
-			"contentType": "events",
-			"contentId":   "423720be-4777-4f15-a569-a4fcc7b0ef92",
+			"id": suite.HighlightID,
 		},
 	}
 
-	highlight := resources.Highlight{}
-	response, err := highlight.AddContent(req)
-
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
-}
-
-func (suite *FeedMyTripAPITestSuite) Test0040HighlightAddTrip() {
-	req := events.APIGatewayProxyRequest{
-		Headers: map[string]string{
-			"Authorization": suite.token,
-		},
-		PathParameters: map[string]string{
-			"id":          suite.HighlightID,
-			"contentType": "trips",
-			"contentId":   "423720be-4777-4f15-a569-a4fcc7b0ef92",
-		},
-	}
-
-	highlight := resources.Highlight{}
-	response, err := highlight.AddContent(req)
-
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
-}
-
-func (suite *FeedMyTripAPITestSuite) Test0050HighlightRemoveEvent() {
-	req := events.APIGatewayProxyRequest{
-		Headers: map[string]string{
-			"Authorization": suite.token,
-		},
-		PathParameters: map[string]string{
-			"id":          suite.HighlightID,
-			"contentType": "events",
-			"contentId":   "423720be-4777-4f15-a569-a4fcc7b0ef92",
-		},
-	}
-
-	highlight := resources.Highlight{}
-	response, err := highlight.RemoveContent(req)
-
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
-}
-
-func (suite *FeedMyTripAPITestSuite) Test0060HighlightRemoveTrip() {
-	req := events.APIGatewayProxyRequest{
-		Headers: map[string]string{
-			"Authorization": suite.token,
-		},
-		PathParameters: map[string]string{
-			"id":          suite.HighlightID,
-			"contentType": "trips",
-			"contentId":   "423720be-4777-4f15-a569-a4fcc7b0ef92",
-		},
-	}
-
-	highlight := resources.Highlight{}
-	response, err := highlight.RemoveContent(req)
+	highlight := highlights.Highlight{}
+	response, err := highlight.Update(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)

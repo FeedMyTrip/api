@@ -1,100 +1,97 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/feedmytrip/api/common"
-	"github.com/feedmytrip/api/db"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/auth"
+	"github.com/feedmytrip/api/resources/users"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 type FeedMyTripAPITestSuite struct {
 	suite.Suite
-	token          string
-	loggedUserID   string
-	favoriteTripID string
+	token  string
+	userID string
 }
 
 func (suite *FeedMyTripAPITestSuite) SetupTest() {
-	common.UsersTable = "UsersTest"
-	common.TripsTable = "TripsTest"
-	db.CreateTable("UsersTest", "userId", 1, 1)
-
 	credentials := `{
 		"username": "test_admin",
 		"password": "fmt12345"
 	}`
-	user, _ := resources.LoginUser(credentials)
+	user, _ := auth.LoginUser(credentials)
 	suite.token = *user.Tokens.AccessToken
-	suite.loggedUserID = user.UserID
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0010GetUserDetails() {
+func (suite *FeedMyTripAPITestSuite) Test0010SaveNewUser() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"title": {
-				"en": "FMT - Testing Trip #1"
-			}
+			"id": "0001",
+			"first_name": "Laura",
+			"last_name": "Morgan"
 		}`,
 	}
-	trip := resources.Trip{}
-	response, err := trip.SaveNew(req)
 
-	req = events.APIGatewayProxyRequest{
+	user := users.User{}
+	response, err := user.SaveNew(req)
+	suite.userID = "0001"
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0020UpdateUser() {
+	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
 		Body: `{
-			"title": {
-				"en": "FMT - Testing Trip #2"
-			}
+			"about_me": "texto sobre mim"
 		}`,
-	}
-	trip = resources.Trip{}
-	response, err = trip.SaveNew(req)
-	json.Unmarshal([]byte(response.Body), &trip)
-	suite.favoriteTripID = trip.TripID
-
-	req = events.APIGatewayProxyRequest{
-		Headers: map[string]string{
-			"Authorization": suite.token,
-		},
 		PathParameters: map[string]string{
-			"id": suite.loggedUserID,
-		},
-		QueryStringParameters: map[string]string{
-			"include": "trips",
+			"id": suite.userID,
 		},
 	}
 
-	user := resources.User{}
-	response, err = user.GetUserDetails(req)
+	user := users.User{}
+	response, err := user.Update(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
-func (suite *FeedMyTripAPITestSuite) Test0010ToggleFavoriteTrip() {
+func (suite *FeedMyTripAPITestSuite) Test0030GetAllUsers() {
+	req := events.APIGatewayProxyRequest{
+		Headers: map[string]string{
+			"Authorization": suite.token,
+		},
+	}
+
+	user := users.User{}
+	response, err := user.GetAll(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
+
+func (suite *FeedMyTripAPITestSuite) Test0040DeleteUser() {
 	req := events.APIGatewayProxyRequest{
 		Headers: map[string]string{
 			"Authorization": suite.token,
 		},
 		PathParameters: map[string]string{
-			"contentType": resources.UserFavoriteTripsScope,
-			"contentId":   suite.favoriteTripID,
+			"id": suite.userID,
 		},
 	}
 
-	user := resources.User{}
-	response, err := user.ToggleFavoriteContent(req)
+	user := users.User{}
+	response, err := user.Delete(req)
 
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)

@@ -8,11 +8,16 @@ DROP TABLE user, translation, highlight, location, event_schedule, event, catego
 
 CREATE TABLE `user`
 (
- `id`         varchar(45) NOT NULL ,
- `first_name` text ,
- `last_name`  text ,
- `about_me`   mediumtext ,
- `image_path` text ,
+ `id`                   varchar(45) NOT NULL ,
+ `active`               smallint NOT NULL DEFAULT 1 ,
+ `principal_trip_id`    varchar(45) NOT NULL ,
+ `first_name`           text ,
+ `last_name`            text ,
+ `image_path`           text ,
+ `country_id`           varchar(45) ,
+ `region_id`            varchar(45) ,
+ `city_id`              varchar(45) ,
+ `about_me`             mediumtext ,
 PRIMARY KEY (`id`)
 );
 
@@ -64,11 +69,9 @@ CREATE TABLE `highlight`
  `image_path`      text ,
  `active`          smallint NOT NULL DEFAULT 1 ,
  `schedule_date`   timestamp ,
- `country_id`      varchar(45) ,
- `region_id`       varchar(45) ,
- `city_id`         varchar(45) ,
- `itineraries_ids` text ,
- `events_ids`      text ,
+ `filter`          text ,
+ `trip_ids`        text ,
+ `event_ids`       text ,
  `created_by`      varchar(45) NOT NULL ,
  `created_date`    timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ,
  `updated_by`      varchar(45) NOT NULL ,
