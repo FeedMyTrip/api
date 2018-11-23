@@ -5,11 +5,11 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/highlights"
 )
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	highlight := resources.Highlight{}
+	highlight := highlights.Highlight{}
 	switch req.Resource {
 	case "/highlights":
 		switch req.HTTPMethod {
@@ -20,22 +20,10 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		}
 	case "/highlights/{id}":
 		switch req.HTTPMethod {
-		case "GET":
-			return highlight.GetItem(req)
 		case "DELETE":
 			return highlight.Delete(req)
 		case "PATCH":
 			return highlight.Update(req)
-		}
-	case "/highlights/{id}/add/{contentType}/{contentId}":
-		switch req.HTTPMethod {
-		case "POST":
-			return highlight.AddContent(req)
-		}
-	case "/highlights/{id}/remove/{contentType}/{contentId}":
-		switch req.HTTPMethod {
-		case "DELETE":
-			return highlight.RemoveContent(req)
 		}
 	}
 

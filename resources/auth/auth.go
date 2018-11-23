@@ -1,4 +1,4 @@
-package resources
+package auth
 
 import (
 	"encoding/json"
@@ -28,8 +28,8 @@ type userCredentials struct {
 	Password string `json:"password" validate:"required"`
 }
 
-//AuthUserResponse represents a response from AWS Cognito after login
-type AuthUserResponse struct {
+//UserResponse represents a response from AWS Cognito after login
+type UserResponse struct {
 	UserID    string                                            `json:"userId"`
 	Group     string                                            `json:"group"`
 	Email     string                                            `json:"email"`
@@ -48,7 +48,7 @@ func (a *Auth) Login(request events.APIGatewayProxyRequest) (events.APIGatewayPr
 }
 
 //LoginUser validate user credentials with AWS Cognito
-func LoginUser(credentialsJSON string) (*AuthUserResponse, error) {
+func LoginUser(credentialsJSON string) (*UserResponse, error) {
 	credentials := userCredentials{}
 	err := json.Unmarshal([]byte(credentialsJSON), &credentials)
 	if err != nil {
@@ -126,8 +126,8 @@ type payload struct {
 	Groups     []string `json:"cognito:groups"`
 }
 
-func parseUserResponse(authOutput *cognitoidentityprovider.AdminInitiateAuthOutput) *AuthUserResponse {
-	u := &AuthUserResponse{}
+func parseUserResponse(authOutput *cognitoidentityprovider.AdminInitiateAuthOutput) *UserResponse {
+	u := &UserResponse{}
 	u.Tokens = authOutput.AuthenticationResult
 
 	jwtPayload, _, _ := jwt.Parse(*u.Tokens.IdToken)

@@ -5,11 +5,11 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/categories"
 )
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	category := resources.Category{}
+	category := categories.Category{}
 	switch req.Resource {
 	case "/categories":
 		switch req.HTTPMethod {

@@ -5,13 +5,13 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/feedmytrip/api/resources"
+	fmt "github.com/feedmytrip/api/resources/events"
 )
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch req.Resource {
 	case "/events":
-		event := resources.Event{}
+		event := fmt.Event{}
 		switch req.HTTPMethod {
 		case "GET":
 			return event.GetAll(req)
@@ -19,21 +19,25 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 			return event.SaveNew(req)
 		}
 	case "/events/{id}":
-		event := resources.Event{}
+		event := fmt.Event{}
 		switch req.HTTPMethod {
+		case "GET":
+			return event.Get(req)
 		case "DELETE":
 			return event.Delete(req)
 		case "PATCH":
 			return event.Update(req)
 		}
 	case "/events/{id}/schedules":
-		schedule := resources.Schedule{}
+		schedule := fmt.Schedule{}
 		switch req.HTTPMethod {
 		case "POST":
 			return schedule.SaveNew(req)
+		case "GET":
+			return schedule.GetAll(req)
 		}
-	case "/events/{id}/schedules/{scheduleId}":
-		schedule := resources.Schedule{}
+	case "/events/{id}/schedules/{schedule_id}":
+		schedule := fmt.Schedule{}
 		switch req.HTTPMethod {
 		case "PATCH":
 			return schedule.Update(req)

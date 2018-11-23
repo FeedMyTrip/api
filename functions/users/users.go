@@ -5,21 +5,25 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/feedmytrip/api/resources"
+	"github.com/feedmytrip/api/resources/users"
 )
 
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	user := resources.User{}
+	user := users.User{}
 	switch req.Resource {
-	case "/users/{id}":
+	case "/users":
 		switch req.HTTPMethod {
 		case "GET":
-			return user.GetUserDetails(req)
-		}
-	case "/users/favorites/{contentType}/{contentId}":
-		switch req.HTTPMethod {
+			return user.GetAll(req)
 		case "POST":
-			return user.ToggleFavoriteContent(req)
+			return user.SaveNew(req)
+		}
+	case "/users/{id}":
+		switch req.HTTPMethod {
+		case "PATCH":
+			return user.Update(req)
+		case "DELETE":
+			return user.Delete(req)
 		}
 	}
 
