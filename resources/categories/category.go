@@ -16,16 +16,17 @@ import (
 
 //Category represents a category in the system
 type Category struct {
-	ID          string             `json:"id" db:"id" lock:"true"`
-	ParentID    string             `json:"parent_id" db:"parent_id"`
-	Active      bool               `json:"active" db:"active"`
-	Title       shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = category.id and title.field = 'title'" embedded:"true" persist:"true"`
-	CreatedBy   string             `json:"created_by" db:"created_by" lock:"true"`
-	CreatedDate time.Time          `json:"created_date" db:"created_date" lock:"true"`
-	UpdatedBy   string             `json:"updated_by" db:"updated_by"`
-	UpdatedDate time.Time          `json:"updated_date" db:"updated_date"`
-	CreatedUser shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = category.created_by" embedded:"true"`
-	UpdatedUser shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = category.updated_by" embedded:"true"`
+	ID             string             `json:"id" db:"id" lock:"true"`
+	ParentID       string             `json:"parent_id" db:"parent_id"`
+	Active         bool               `json:"active" db:"active"`
+	ParentCategory shared.Translation `json:"parent_category" table:"translation" alias:"parent_category" on:"parent_category.parent_id = category.parent_id and parent_category.field = 'title'" embedded:"true"`
+	Title          shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = category.id and title.field = 'title'" embedded:"true" persist:"true"`
+	CreatedBy      string             `json:"created_by" db:"created_by" lock:"true"`
+	CreatedDate    time.Time          `json:"created_date" db:"created_date" lock:"true"`
+	UpdatedBy      string             `json:"updated_by" db:"updated_by"`
+	UpdatedDate    time.Time          `json:"updated_date" db:"updated_date"`
+	CreatedUser    shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = category.created_by" embedded:"true"`
+	UpdatedUser    shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = category.updated_by" embedded:"true"`
 }
 
 //GetAll returns all categories available in the database
@@ -96,7 +97,13 @@ func (c *Category) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	}
 
 	tx.Commit()
-	return common.APIResponse(c, http.StatusCreated)
+
+	result, err := db.QueryOne(session, db.TableCategory, c.ID, Category{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusCreated)
 }
 
 //Update change categories attributes in the database
@@ -135,7 +142,13 @@ func (c *Category) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	tx.Commit()
-	return common.APIResponse(c, http.StatusOK)
+
+	result, err := db.QueryOne(session, db.TableCategory, request.PathParameters["id"], Category{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //Delete removes categories from the database

@@ -119,7 +119,13 @@ func (l *Location) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	tx.Commit()
-	return common.APIResponse(l, http.StatusOK)
+
+	result, err := db.QueryOne(session, db.TableLocation, request.PathParameters["id"], Location{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //Delete remove location from the database
