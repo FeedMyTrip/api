@@ -18,6 +18,7 @@ import (
 type Trip struct {
 	ID          string             `json:"id" db:"id"`
 	ItineraryID string             `json:"itinerary_id" db:"itinerary_id"`
+	Active      bool               `json:"active" db:"active"`
 	Title       shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = trip.id and title.field = 'title'" embedded:"true" persist:"true"`
 	Description shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip.id and title.field = 'description'" embedded:"true" persist:"true"`
 	Scope       string             `json:"scope" db:"scope" lock:"true"`

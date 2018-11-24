@@ -29,6 +29,7 @@ CREATE TABLE `trip`
 (
  `id`           varchar(45) NOT NULL ,
  `itinerary_id` varchar(45) NOT NULL ,
+ `active`       smallint NOT NULL DEFAULT 1 ,
  `scope`        tinytext NOT NULL ,
  `country_id`   varchar(45) ,
  `region_id`    varchar(45) ,

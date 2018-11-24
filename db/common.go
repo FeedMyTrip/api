@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	recorsPerPage = 50
+	recorsPerPage = 30
 )
 
 const (
@@ -50,8 +50,10 @@ type dbResult struct {
 }
 
 type metadata struct {
+	Page          int    `json:"page"`
 	Total         int    `json:"total" db:"total"`
 	TotalFiltered int    `json:"total_filtered" db:"total_filtered"`
+	RecorsPerPage int    `json:"records_per_page"`
 	Source        string `json:"source"`
 }
 
@@ -82,7 +84,7 @@ func checkFiltersInParams(params map[string]string) bool {
 		return true
 	}
 	for k := range params {
-		if k != "page" {
+		if k != "page" && k != "results" {
 			return true
 		}
 	}
@@ -120,7 +122,7 @@ func loadTableMetadata(session *dbr.Session, table string, params map[string]str
 
 		otherFilters := []dbr.Builder{}
 		for k, v := range params {
-			if k != "filter" && k != "page" && k != "id" {
+			if k != "filter" && k != "page" && k != "results" && k != "id" && k != "order" && k != "sort" {
 				column := table + "." + k
 				filter := dbr.Eq(column, v)
 				if v == "is_not_null" {
@@ -156,6 +158,16 @@ func loadTableMetadata(session *dbr.Session, table string, params map[string]str
 		m.TotalFiltered = fm.TotalFiltered
 	}
 	m.Source = table
+	m.RecorsPerPage = recorsPerPage
+	if val, ok := params["results"]; ok {
+		i, _ := strconv.Atoi(val)
+		m.RecorsPerPage = i
+	}
+	m.Page = 1
+	if val, ok := params["page"]; ok {
+		i, _ := strconv.Atoi(val)
+		m.Page = i
+	}
 	return m, err
 }
 
@@ -193,7 +205,7 @@ func loadGeneric(sess *dbr.Session, table string, params map[string]string, obje
 
 	otherFilters := []dbr.Builder{}
 	for k, v := range params {
-		if k != "filter" && k != "page" && k != "id" {
+		if k != "filter" && k != "page" && k != "results" && k != "id" && k != "order" && k != "sort" {
 			column := table + "." + k
 			filter := dbr.Eq(column, v)
 			if v == "is_not_null" {
@@ -227,12 +239,35 @@ func loadGeneric(sess *dbr.Session, table string, params map[string]string, obje
 		stmt.Where(table+".id IN ?", idsInterface...)
 	}
 
+	if col, ok := params["sort"]; ok {
+		column := table + "." + col
+		if val, ok := params["order"]; ok {
+			if val == "asc" {
+				stmt.OrderAsc(column)
+			} else {
+				stmt.OrderDesc(column)
+			}
+		} else {
+			stmt.OrderDesc(column)
+		}
+	}
+
 	if val, ok := params["page"]; ok {
 		page, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
 			page = 1
 		}
-		stmt.Paginate(page, recorsPerPage)
+		rpp := recorsPerPage
+		if val, ok := params["results"]; ok {
+			i, err := strconv.Atoi(val)
+			if err != nil {
+				rpp = recorsPerPage
+			} else {
+				rpp = i
+			}
+		}
+		rppUint64, _ := strconv.ParseUint(strconv.Itoa(rpp), 10, 64)
+		stmt.Paginate(page, rppUint64)
 	}
 
 	rows, err := stmt.Rows()
