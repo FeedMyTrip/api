@@ -323,7 +323,7 @@ func loadGeneric(sess *dbr.Session, table string, params map[string]string, obje
 					index++
 				}
 				mapJSON[parentField] = embeddedResult
-				i = index
+				i = index - 1
 			} else {
 				mapJSON[f] = getResultValue(result[i], types[i].String())
 				if mapJSON[f] == nil {
