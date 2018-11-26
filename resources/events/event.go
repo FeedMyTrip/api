@@ -73,7 +73,7 @@ func (e *Event) GetAll(request events.APIGatewayProxyRequest) (events.APIGateway
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
-	return common.APIResponse(result, http.StatusConflict)
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //SaveNew creates a new event
