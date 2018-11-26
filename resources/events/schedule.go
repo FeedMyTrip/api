@@ -98,7 +98,13 @@ func (s *Schedule) SaveNew(request events.APIGatewayProxyRequest) (events.APIGat
 	}
 
 	tx.Commit()
-	return common.APIResponse(s, http.StatusCreated)
+
+	result, err := db.QueryOne(session, db.TableEventSchedule, s.ID, Schedule{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusCreated)
 }
 
 //Update change event schedule attributes in the database
@@ -137,7 +143,13 @@ func (s *Schedule) Update(request events.APIGatewayProxyRequest) (events.APIGate
 	}
 
 	tx.Commit()
-	return common.APIResponse(nil, http.StatusOK)
+
+	result, err := db.QueryOne(session, db.TableEventSchedule, request.PathParameters["schedule_id"], Schedule{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //Delete removes event schedule from the database
