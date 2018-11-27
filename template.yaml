@@ -124,6 +124,14 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /trips
             Method: post
+        GetTrip:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /trips/{id}
+            Method: get
         PatchTrip:
           Type: Api
           Properties:
