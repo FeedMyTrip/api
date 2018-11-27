@@ -93,6 +93,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	}
 
 	t.ID = uuid.New().String()
+	t.Active = true
 	t.Title.ID = uuid.New().String()
 	t.Title.Table = db.TableTrip
 	t.Title.Field = "title"
@@ -108,7 +109,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 
 	t.Scope = "user"
 	if tokenUser.IsAdmin() {
-		t.Scope = "system"
+		t.Scope = "global"
 		t.Title.Translate()
 	}
 
@@ -120,7 +121,7 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	defaultItinerary.StartDate = time.Now()
 	defaultItinerary.EndDate = time.Now()
 	defaultItinerary.Title.ID = uuid.New().String()
-	defaultItinerary.Title.ParentID = t.ID
+	defaultItinerary.Title.ParentID = defaultItinerary.ID
 	defaultItinerary.Title.Table = db.TableTripItinerary
 	defaultItinerary.Title.Field = "title"
 	defaultItinerary.Title.PT = "Padrão"
@@ -172,7 +173,12 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 
 	tx.Commit()
 
-	return common.APIResponse(t, http.StatusCreated)
+	result, err := db.QueryOne(session, db.TableTrip, t.ID, Trip{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusCreated)
 }
 
 //Update change trip attributes in the database
