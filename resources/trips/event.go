@@ -23,7 +23,7 @@ type ItineraryEvent struct {
 	GlobalEventID       string             `json:"global_event_id" db:"global_event_id" lock:"true"`
 	Title               shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = trip_itinerary_event.id and title.field = 'title'" embedded:"true" persist:"true"`
 	Description         shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip_itinerary_event.id and title.field = 'description'" embedded:"true" persist:"true"`
-	BeginOffset         int                `json:"begin_offset" db:"begin_offset"`
+	BeginOffset         float64            `json:"begin_offset" db:"begin_offset"`
 	Duration            int                `json:"duration" db:"duration"`
 	MainCategoryID      string             `json:"main_category_id" db:"main_category_id"`
 	MainCategory        shared.Translation `json:"main_category" table:"translation" alias:"main_category" on:"main_category.parent_id = trip_itinerary_event.main_category_id and main_category.field = 'title'" embedded:"true"`
@@ -185,6 +185,18 @@ func (e *ItineraryEvent) Add(request events.APIGatewayProxyRequest) (events.APIG
 	e.CreatedDate = time.Now()
 	e.UpdatedBy = tokenUser.UserID
 	e.UpdatedDate = time.Now()
+
+	if request.Body != "" {
+		jsonMap := make(map[string]interface{})
+		err = json.Unmarshal([]byte(request.Body), &jsonMap)
+		if err != nil {
+			return common.APIError(http.StatusBadRequest, err)
+		}
+
+		if val, ok := jsonMap["begin_offset"]; ok {
+			e.BeginOffset = val.(float64)
+		}
+	}
 
 	tx, err := session.Begin()
 	defer tx.RollbackUnlessCommitted()

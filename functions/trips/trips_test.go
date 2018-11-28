@@ -397,6 +397,9 @@ func (suite *FeedMyTripAPITestSuite) Test0410AddGlobalItineraryEvent() {
 			"itinerary_id":    suite.itineraryID,
 			"global_event_id": globalEvent.ID,
 		},
+		Body: `{
+			"begin_offset": 0
+		}`,
 	}
 
 	event := trips.ItineraryEvent{}
