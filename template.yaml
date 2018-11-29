@@ -13,7 +13,7 @@ Resources:
         Authorizers:
           FMTApiCognitoAuthorizer:
             UserPoolArn:
-              - "arn:aws:cognito-idp:us-east-1:563319661021:userpool/us-east-1_0JwI28hrb"
+              - 'arn:aws:cognito-idp:us-east-1:563319661021:userpool/us-east-1_0JwI28hrb'
 
   AuthFunction:
     Type: AWS::Serverless::Function
@@ -404,6 +404,14 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights
             Method: post
+        GetHighlight:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}
+            Method: get
         UpdateHighlight:
           Type: Api
           Properties:

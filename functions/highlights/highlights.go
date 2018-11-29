@@ -20,6 +20,8 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		}
 	case "/highlights/{id}":
 		switch req.HTTPMethod {
+		case "GET":
+			return highlight.Get(req)
 		case "DELETE":
 			return highlight.Delete(req)
 		case "PATCH":

@@ -38,6 +38,25 @@ type Highlight struct {
 	UpdatedUser  shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = highlight.updated_by" embedded:"true"`
 }
 
+//Get return a highlight
+func (h *Highlight) Get(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	conn, err := db.Connect()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	session := conn.NewSession(nil)
+	defer session.Close()
+	defer conn.Close()
+
+	result, err := db.QueryOne(session, db.TableHighlight, request.PathParameters["id"], Highlight{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
+}
+
 //GetAll returns all highlights available in the database
 func (h *Highlight) GetAll(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	conn, err := db.Connect()
@@ -111,7 +130,13 @@ func (h *Highlight) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	}
 
 	tx.Commit()
-	return common.APIResponse(h, http.StatusCreated)
+
+	result, err := db.QueryOne(session, db.TableHighlight, h.ID, Highlight{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //Update change highlight attributes in the database
