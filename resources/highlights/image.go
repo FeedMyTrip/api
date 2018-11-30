@@ -20,6 +20,7 @@ type HighlightImage struct {
 	ID          string      `json:"id" db:"id" lock:"true"`
 	HighlightID string      `json:"highlight_id" db:"highlight_id" lock:"true"`
 	Path        string      `json:"path" db:"path" filter:"true" lock:"true"`
+	FileName    string      `json:"file_name" db:"file_name" filter:"true" lock:"true"`
 	CreatedBy   string      `json:"created_by" db:"created_by" lock:"true"`
 	CreatedDate time.Time   `json:"created_date" db:"created_date" lock:"true"`
 	CreatedUser shared.User `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = highlight_image.created_by" embedded:"true"`
