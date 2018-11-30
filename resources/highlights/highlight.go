@@ -19,7 +19,6 @@ type Highlight struct {
 	Active       bool               `json:"active" db:"active"`
 	Title        shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = highlight.id and title.field = 'title'" embedded:"true" persist:"true"`
 	Description  shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = highlight.id and title.field = 'description'" embedded:"true" persist:"true"`
-	ImagePath    string             `json:"image_path" db:"image_path"`
 	ScheduleDate time.Time          `json:"schedule_date" db:"schedule_date"`
 	Filter       string             `json:"filter" db:"filter"`
 	CountryID    string             `json:"country_id" db:"country_id"`
@@ -220,6 +219,8 @@ func (h *Highlight) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 
 	session := conn.NewSession(nil)
 	defer session.Close()
+
+	//TODO: Delete all highlight images and then delete highlight folder on AWS S3
 
 	err = db.Delete(session, db.TableHighlight, request.PathParameters["id"])
 	if err != nil {

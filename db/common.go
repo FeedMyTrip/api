@@ -19,6 +19,8 @@ const (
 const (
 	//TableHighlight defines the highlights entities database table
 	TableHighlight = "highlight"
+	//TableHighlightImage defines the highlights images entities database table
+	TableHighlightImage = "highlight_image"
 	//TableTrip defines the trips entities database table
 	TableTrip = "trip"
 	//TableTripParticipant defines the trip participants entities database table

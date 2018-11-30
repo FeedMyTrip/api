@@ -428,6 +428,30 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /highlights/{id}
             Method: delete
+        PostHighlightImage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}/images
+            Method: post
+        GetHighlightImages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}/images
+            Method: get
+        DeleteHighlightImages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
+            Path: /highlights/{id}/images/{image_id}
+            Method: delete
 
   CategoriesFunction:
     Type: AWS::Serverless::Function
