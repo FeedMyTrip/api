@@ -35,6 +35,14 @@ func (h *HighlightImage) GetAll(request events.APIGatewayProxyRequest) (events.A
 	session := conn.NewSession(nil)
 	defer session.Close()
 
+	if request.QueryStringParameters == nil {
+		request.QueryStringParameters = map[string]string{
+			"highlight_id": request.PathParameters["id"],
+		}
+	} else {
+		request.QueryStringParameters["highlight_id"] = request.PathParameters["id"]
+	}
+
 	result, err := db.Select(session, db.TableHighlightImage, request.QueryStringParameters, HighlightImage{})
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
