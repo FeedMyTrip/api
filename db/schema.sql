@@ -90,14 +90,13 @@ PRIMARY KEY (`id`)
 
 
 
--- ************************************** `highlight_images`
+-- ************************************** `highlight_image`
 
-CREATE TABLE `highlight_images`
+CREATE TABLE `highlight_image`
 (
  `id`           varchar(45) NOT NULL ,
  `highlight_id` varchar(45) NOT NULL ,
  `path`         text NOT NULL ,
- `filename`     text NOT NULL ,
  `file_name`    text NOT NULL ,
  `created_by`   varchar(45) NOT NULL ,
  `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ,

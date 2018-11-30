@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/feedmytrip/api/common"
 	"github.com/feedmytrip/api/db"
 	"github.com/feedmytrip/api/resources/shared"
@@ -102,30 +100,6 @@ func (h *HighlightImage) Delete(request events.APIGatewayProxyRequest) (events.A
 
 	session := conn.NewSession(nil)
 	defer session.Close()
-
-	result, err := db.QueryOne(session, db.TableHighlightImage, request.PathParameters["image_id"], Highlight{})
-	if err != nil {
-		return common.APIError(http.StatusInternalServerError, err)
-	}
-
-	jsonBytes, _ := json.Marshal(result)
-	json.Unmarshal(jsonBytes, h)
-
-	sess, err := common.GetAWSSession("us-east-1")
-	if err != nil {
-		return common.APIError(http.StatusInternalServerError, err)
-	}
-
-	svc := s3.New(sess)
-	input := &s3.DeleteObjectInput{
-		Bucket: aws.String("fmt-files"),
-		Key:    aws.String(h.Path),
-	}
-
-	result, err = svc.DeleteObject(input)
-	if err != nil {
-		return common.APIError(http.StatusInternalServerError, err)
-	}
 
 	err = db.Delete(session, db.TableHighlightImage, request.PathParameters["image_id"])
 	if err != nil {
