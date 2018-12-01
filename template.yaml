@@ -24,6 +24,12 @@ Resources:
       Policies: AmazonCognitoPowerUser
       Tracing: Active
       Events:
+        Register:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedMyTripApiGateway
+            Path: /auth/register
+            Method: post
         Login:
           Type: Api
           Properties:

@@ -24,8 +24,13 @@ const (
 type Auth struct{}
 
 type userCredentials struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Username     string `json:"username" validate:"required"`
+	Password     string `json:"password" validate:"required"`
+	GivenName    string `json:"given_name"`
+	FamilyName   string `json:"family_name"`
+	Email        string `json:"email"`
+	Group        string `json:"group"`
+	LanguageCode string `json:"language_code"`
 }
 
 //UserResponse represents a response from AWS Cognito after login
@@ -36,6 +41,91 @@ type UserResponse struct {
 	FirstName string                                            `json:"firstName"`
 	LastName  string                                            `json:"lastName"`
 	Tokens    *cognitoidentityprovider.AuthenticationResultType `json:"tokens"`
+}
+
+//Register creates a new user
+func (a *Auth) Register(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	credentials := userCredentials{}
+	err := json.Unmarshal([]byte(request.Body), &credentials)
+	if err != nil {
+		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	validate := validator.New()
+	err = validate.Struct(credentials)
+	if err != nil {
+		return common.APIError(http.StatusBadRequest, err)
+	}
+
+	sess, err := getAWSSession("us-east-1")
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	svc := cognitoidentityprovider.New(sess)
+	signUpParams := &cognitoidentityprovider.SignUpInput{
+		Username: aws.String(credentials.Username),
+		Password: aws.String(credentials.Password),
+		UserAttributes: []*cognitoidentityprovider.AttributeType{
+			&cognitoidentityprovider.AttributeType{
+				Name:  aws.String("given_name"),
+				Value: aws.String(credentials.GivenName),
+			},
+			&cognitoidentityprovider.AttributeType{
+				Name:  aws.String("family_name"),
+				Value: aws.String(credentials.FamilyName),
+			},
+			&cognitoidentityprovider.AttributeType{
+				Name:  aws.String("email"),
+				Value: aws.String(credentials.Email),
+			},
+			&cognitoidentityprovider.AttributeType{
+				Name:  aws.String("custom:language_code"),
+				Value: aws.String(credentials.LanguageCode),
+			},
+		},
+		ClientId: aws.String(clientID),
+	}
+
+	_, err = svc.SignUp(signUpParams)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	confirmSignUpParams := &cognitoidentityprovider.AdminConfirmSignUpInput{
+		UserPoolId: aws.String(userPoolID),
+		Username:   aws.String(credentials.Username),
+	}
+
+	_, err = svc.AdminConfirmSignUp(confirmSignUpParams)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	if credentials.Group != "User" {
+		addUserToGroupParams := &cognitoidentityprovider.AdminAddUserToGroupInput{
+			GroupName:  aws.String(credentials.Group),
+			UserPoolId: aws.String(userPoolID),
+			Username:   aws.String(credentials.Username),
+		}
+
+		_, err := svc.AdminAddUserToGroup(addUserToGroupParams)
+		if err != nil {
+			return common.APIError(http.StatusInternalServerError, err)
+		}
+	}
+
+	getUserParams := &cognitoidentityprovider.AdminGetUserInput{
+		UserPoolId: aws.String(userPoolID),
+		Username:   aws.String(credentials.Username),
+	}
+
+	user, err := svc.AdminGetUser(getUserParams)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(user, http.StatusCreated)
 }
 
 //Login validate user credentials with AWS Cognito and returns an APIGatewayProxyResponse
