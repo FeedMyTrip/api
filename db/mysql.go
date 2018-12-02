@@ -91,6 +91,7 @@ func Select(session *dbr.Session, table string, params map[string]string, object
 	result, err := loadGeneric(session, table, params, object, objectMetadata, []string{})
 	if err != nil {
 		dbresult.Errors = append(dbresult.Errors, err)
+		result = []map[string]interface{}{}
 	}
 	dbresult.Data = result
 

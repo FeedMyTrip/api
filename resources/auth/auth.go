@@ -5,16 +5,18 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/feedmytrip/api/common"
+	"github.com/feedmytrip/api/db"
 	"github.com/gbrlsnchs/jwt"
-	validator "gopkg.in/go-playground/validator.v9"
 )
 
+//TODO: set as lambda environment variables
 const (
 	clientID   = "2i1vka74ub2c6b3i5l6o3aaio"
 	userPoolID = "us-east-1_0JwI28hrb"
@@ -24,8 +26,8 @@ const (
 type Auth struct{}
 
 type userCredentials struct {
-	Username     string `json:"username" validate:"required"`
-	Password     string `json:"password" validate:"required"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
 	GivenName    string `json:"given_name"`
 	FamilyName   string `json:"family_name"`
 	Email        string `json:"email"`
@@ -43,16 +45,31 @@ type UserResponse struct {
 	Tokens    *cognitoidentityprovider.AuthenticationResultType `json:"tokens"`
 }
 
-//Register creates a new user
+//DBUser represents the database fields dependent to the AWS Cognito
+type DBUser struct {
+	ID           string    `json:"id" db:"id"`
+	Active       bool      `json:"active" db:"active"`
+	FirstName    string    `json:"first_name" db:"first_name"`
+	LastName     string    `json:"last_name" db:"last_name"`
+	Group        string    `json:"group" db:"group"`
+	Username     string    `json:"username" db:"username"`
+	Email        string    `json:"email" db:"email"`
+	LanguageCode string    `json:"language_code" db:"language_code"`
+	CreatedBy    string    `json:"created_by" db:"created_by"`
+	CreatedDate  time.Time `json:"created_date" db:"created_date"`
+	UpdatedBy    string    `json:"updated_by" db:"updated_by"`
+	UpdatedDate  time.Time `json:"updated_date" db:"updated_date"`
+}
+
+//Register creates a new user in AWS Cognito and in the Database
 func (a *Auth) Register(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	credentials := userCredentials{}
-	err := json.Unmarshal([]byte(request.Body), &credentials)
-	if err != nil {
-		return common.APIError(http.StatusBadRequest, err)
+	tokenUser := common.GetTokenUser(request)
+	if !tokenUser.IsAdmin() {
+		return common.APIError(http.StatusForbidden, errors.New("only admin users can access this resource"))
 	}
 
-	validate := validator.New()
-	err = validate.Struct(credentials)
+	credentials := userCredentials{}
+	err := json.Unmarshal([]byte(request.Body), &credentials)
 	if err != nil {
 		return common.APIError(http.StatusBadRequest, err)
 	}
@@ -87,7 +104,7 @@ func (a *Auth) Register(request events.APIGatewayProxyRequest) (events.APIGatewa
 		ClientId: aws.String(clientID),
 	}
 
-	_, err = svc.SignUp(signUpParams)
+	result, err := svc.SignUp(signUpParams)
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
@@ -115,16 +132,41 @@ func (a *Auth) Register(request events.APIGatewayProxyRequest) (events.APIGatewa
 		}
 	}
 
-	getUserParams := &cognitoidentityprovider.AdminGetUserInput{
-		UserPoolId: aws.String(userPoolID),
-		Username:   aws.String(credentials.Username),
+	user := DBUser{
+		ID:           *result.UserSub,
+		Active:       true,
+		FirstName:    credentials.GivenName,
+		LastName:     credentials.FamilyName,
+		Group:        credentials.Group,
+		Username:     credentials.Username,
+		Email:        credentials.Email,
+		LanguageCode: credentials.LanguageCode,
 	}
+	user.CreatedBy = tokenUser.UserID
+	user.CreatedDate = time.Now()
+	user.UpdatedBy = tokenUser.UserID
+	user.UpdatedDate = time.Now()
 
-	user, err := svc.AdminGetUser(getUserParams)
+	conn, err := db.Connect()
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
 	}
 
+	session := conn.NewSession(nil)
+	tx, err := session.Begin()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+	defer tx.RollbackUnlessCommitted()
+	defer session.Close()
+	defer conn.Close()
+
+	err = db.Insert(tx, db.TableUser, user)
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	tx.Commit()
 	return common.APIResponse(user, http.StatusCreated)
 }
 
@@ -145,10 +187,8 @@ func LoginUser(credentialsJSON string) (*UserResponse, error) {
 		return nil, err
 	}
 
-	validate := validator.New()
-	err = validate.Struct(credentials)
-	if err != nil {
-		return nil, err
+	if credentials.Username == "" || credentials.Password == "" {
+		return nil, errors.New("empty username or password")
 	}
 
 	sess, err := getAWSSession("us-east-1")

@@ -21,13 +21,26 @@ Resources:
       Handler: fmt-lambda-auth
       Runtime: go1.x
       CodeUri: ./deploy/auth.zip
-      Policies: AmazonCognitoPowerUser
+      Policies:
+        - AmazonCognitoPowerUser
+        - AWSLambdaVPCAccessExecutionRole
+        - TranslateReadOnly
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-05bb4563990046df8
+        SubnetIds:
+          - subnet-059e210ebcd66c877
+          - subnet-07efbbfd0de6c481b
+          - subnet-092fdd32984185a6f
+          - subnet-0c334359e212b7f1d
       Tracing: Active
       Events:
         Register:
           Type: Api
           Properties:
             RestApiId: !Ref FeedMyTripApiGateway
+            Auth:
+              Authorizer: FMTApiCognitoAuthorizer
             Path: /auth/register
             Method: post
         Login:
@@ -70,14 +83,6 @@ Resources:
               Authorizer: FMTApiCognitoAuthorizer
             Path: /users
             Method: get
-        PostUser:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedMyTripApiGateway
-            Auth:
-              Authorizer: FMTApiCognitoAuthorizer
-            Path: /users
-            Method: post
         UpdateUser:
           Type: Api
           Properties:

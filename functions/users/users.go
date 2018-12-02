@@ -15,8 +15,6 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		switch req.HTTPMethod {
 		case "GET":
 			return user.GetAll(req)
-		case "POST":
-			return user.SaveNew(req)
 		}
 	case "/users/{id}":
 		switch req.HTTPMethod {
