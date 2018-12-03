@@ -22,7 +22,7 @@ type ItineraryEvent struct {
 	ItineraryID         string             `json:"itinerary_id" db:"itinerary_id" lock:"true"`
 	GlobalEventID       string             `json:"global_event_id" db:"global_event_id" lock:"true"`
 	Title               shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = trip_itinerary_event.id and title.field = 'title'" embedded:"true" persist:"true"`
-	Description         shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip_itinerary_event.id and title.field = 'description'" embedded:"true" persist:"true"`
+	Description         shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip_itinerary_event.id and description.field = 'description'" embedded:"true" persist:"true"`
 	BeginOffset         float64            `json:"begin_offset" db:"begin_offset"`
 	Duration            int                `json:"duration" db:"duration"`
 	MainCategoryID      string             `json:"main_category_id" db:"main_category_id"`
