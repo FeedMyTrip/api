@@ -92,9 +92,6 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateTrip() {
 		PathParameters: map[string]string{
 			"id": suite.tripID,
 		},
-		QueryStringParameters: map[string]string{
-			"translate": "description",
-		},
 	}
 
 	trip := trips.Trip{}

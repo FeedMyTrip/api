@@ -107,8 +107,6 @@ func (e *Event) SaveNew(request events.APIGatewayProxyRequest) (events.APIGatewa
 	e.UpdatedBy = tokenUser.UserID
 	e.UpdatedDate = time.Now()
 
-	e.Title.Translate()
-
 	conn, err := db.Connect()
 	if err != nil {
 		return common.APIError(http.StatusInternalServerError, err)
@@ -153,26 +151,6 @@ func (e *Event) Update(request events.APIGatewayProxyRequest) (events.APIGateway
 
 	jsonMap["updated_by"] = tokenUser.UserID
 	jsonMap["updated_date"] = time.Now()
-
-	if field, ok := request.QueryStringParameters["translate"]; ok {
-		if field != "title" && field != "description" {
-			return common.APIError(http.StatusBadRequest, errors.New("invalid translation field"))
-		}
-		translation := shared.Translation{}
-		if val, ok := jsonMap[field+".en"]; ok {
-			translation.EN = val.(string)
-		} else if val, ok := jsonMap[field+".pt"]; ok {
-			translation.PT = val.(string)
-		} else if val, ok := jsonMap[field+".es"]; ok {
-			translation.ES = val.(string)
-		}
-		if !translation.IsEmpty() {
-			translation.Translate()
-			jsonMap[field+".en"] = translation.EN
-			jsonMap[field+".es"] = translation.ES
-			jsonMap[field+".pt"] = translation.PT
-		}
-	}
 
 	conn, err := db.Connect()
 	if err != nil {

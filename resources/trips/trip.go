@@ -110,7 +110,6 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	t.Scope = "user"
 	if tokenUser.IsAdmin() {
 		t.Scope = "global"
-		t.Title.Translate()
 	}
 
 	t.ItineraryID = uuid.New().String()
@@ -219,26 +218,6 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 
 	jsonMap["updated_by"] = tokenUser.UserID
 	jsonMap["updated_date"] = time.Now()
-
-	if field, ok := request.QueryStringParameters["translate"]; ok {
-		if field != "title" && field != "description" {
-			return common.APIError(http.StatusBadRequest, errors.New("invalid translation field"))
-		}
-		translation := shared.Translation{}
-		if val, ok := jsonMap[field+".en"]; ok {
-			translation.EN = val.(string)
-		} else if val, ok := jsonMap[field+".pt"]; ok {
-			translation.PT = val.(string)
-		} else if val, ok := jsonMap[field+".es"]; ok {
-			translation.ES = val.(string)
-		}
-		if !translation.IsEmpty() {
-			translation.Translate()
-			jsonMap[field+".en"] = translation.EN
-			jsonMap[field+".es"] = translation.ES
-			jsonMap[field+".pt"] = translation.PT
-		}
-	}
 
 	tx, err := session.Begin()
 	if err != nil {
