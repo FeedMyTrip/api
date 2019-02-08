@@ -36,7 +36,7 @@ func (suite *FeedMyTripAPITestSuite) SetupTest() {
 
 	credentials = `{
 		"username": "test_participant",
-		"password": "fmt12345"
+		"password": "fmt2018"
 	}`
 	participantUser, _ := auth.LoginUser(credentials)
 	suite.participantToken = *participantUser.Tokens.AccessToken
@@ -92,16 +92,13 @@ func (suite *FeedMyTripAPITestSuite) Test0030UpdateTrip() {
 		PathParameters: map[string]string{
 			"id": suite.tripID,
 		},
-		QueryStringParameters: map[string]string{
-			"translate": "description",
-		},
 	}
 
 	trip := trips.Trip{}
 	response, err := trip.Update(req)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+	assert.Equal(suite.T(), http.StatusCreated, response.StatusCode, response.Body)
 }
 
 func (suite *FeedMyTripAPITestSuite) Test0100ForbiddenGetTripParticipants() {

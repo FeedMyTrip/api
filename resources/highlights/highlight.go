@@ -18,8 +18,7 @@ type Highlight struct {
 	ID           string             `json:"id" db:"id" lock:"true"`
 	Active       bool               `json:"active" db:"active"`
 	Title        shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = highlight.id and title.field = 'title'" embedded:"true" persist:"true"`
-	Description  shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = highlight.id and title.field = 'description'" embedded:"true" persist:"true"`
-	ImagePath    string             `json:"image_path" db:"image_path"`
+	Description  shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = highlight.id and description.field = 'description'" embedded:"true" persist:"true"`
 	ScheduleDate time.Time          `json:"schedule_date" db:"schedule_date"`
 	Filter       string             `json:"filter" db:"filter"`
 	CountryID    string             `json:"country_id" db:"country_id"`
@@ -36,6 +35,25 @@ type Highlight struct {
 	UpdatedDate  time.Time          `json:"updated_date" db:"updated_date"`
 	CreatedUser  shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = highlight.created_by" embedded:"true"`
 	UpdatedUser  shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = highlight.updated_by" embedded:"true"`
+}
+
+//Get return a highlight
+func (h *Highlight) Get(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	conn, err := db.Connect()
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	session := conn.NewSession(nil)
+	defer session.Close()
+	defer conn.Close()
+
+	result, err := db.QueryOne(session, db.TableHighlight, request.PathParameters["id"], Highlight{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //GetAll returns all highlights available in the database
@@ -88,8 +106,6 @@ func (h *Highlight) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	h.UpdatedBy = tokenUser.UserID
 	h.UpdatedDate = time.Now()
 
-	h.Title.Translate()
-
 	conn, err := db.Connect()
 	defer conn.Close()
 	if err != nil {
@@ -111,7 +127,13 @@ func (h *Highlight) SaveNew(request events.APIGatewayProxyRequest) (events.APIGa
 	}
 
 	tx.Commit()
-	return common.APIResponse(h, http.StatusCreated)
+
+	result, err := db.QueryOne(session, db.TableHighlight, h.ID, Highlight{})
+	if err != nil {
+		return common.APIError(http.StatusInternalServerError, err)
+	}
+
+	return common.APIResponse(result, http.StatusOK)
 }
 
 //Update change highlight attributes in the database
@@ -129,26 +151,6 @@ func (h *Highlight) Update(request events.APIGatewayProxyRequest) (events.APIGat
 
 	jsonMap["updated_by"] = tokenUser.UserID
 	jsonMap["updated_date"] = time.Now()
-
-	if field, ok := request.QueryStringParameters["translate"]; ok {
-		if field != "title" && field != "description" {
-			return common.APIError(http.StatusBadRequest, errors.New("invalid translation field"))
-		}
-		translation := shared.Translation{}
-		if val, ok := jsonMap[field+".en"]; ok {
-			translation.EN = val.(string)
-		} else if val, ok := jsonMap[field+".pt"]; ok {
-			translation.PT = val.(string)
-		} else if val, ok := jsonMap[field+".es"]; ok {
-			translation.ES = val.(string)
-		}
-		if !translation.IsEmpty() {
-			translation.Translate()
-			jsonMap[field+".en"] = translation.EN
-			jsonMap[field+".es"] = translation.ES
-			jsonMap[field+".pt"] = translation.PT
-		}
-	}
 
 	conn, err := db.Connect()
 	defer conn.Close()
@@ -195,6 +197,8 @@ func (h *Highlight) Delete(request events.APIGatewayProxyRequest) (events.APIGat
 
 	session := conn.NewSession(nil)
 	defer session.Close()
+
+	//TODO: Delete all highlight images and then delete highlight folder on AWS S3
 
 	err = db.Delete(session, db.TableHighlight, request.PathParameters["id"])
 	if err != nil {

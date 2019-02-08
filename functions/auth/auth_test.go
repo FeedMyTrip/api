@@ -49,6 +49,26 @@ func (suite *FeedMyTripAPITestSuite) Test0020RefreshToken() {
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
 }
 
+func (suite *FeedMyTripAPITestSuite) Test0030Register() {
+	credentials := `{
+		"username": "test_register",
+		"password": "fmt12345",
+		"family_name": "Sobrenome",
+		"given_name": "Nome",
+		"email": "email@test.com",
+		"group": "Admin",
+		"language_code": "pt"
+	}`
+	req := events.APIGatewayProxyRequest{
+		Body: credentials,
+	}
+
+	auth := fmt.Auth{}
+	response, err := auth.Register(req)
+
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode, response.Body)
+}
 func TestFeedMyTripAPITestSuite(t *testing.T) {
 	suite.Run(t, new(FeedMyTripAPITestSuite))
 }

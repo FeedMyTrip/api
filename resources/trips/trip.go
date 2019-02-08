@@ -20,7 +20,7 @@ type Trip struct {
 	ItineraryID string             `json:"itinerary_id" db:"itinerary_id"`
 	Active      bool               `json:"active" db:"active"`
 	Title       shared.Translation `json:"title" table:"translation" alias:"title" on:"title.parent_id = trip.id and title.field = 'title'" embedded:"true" persist:"true"`
-	Description shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip.id and title.field = 'description'" embedded:"true" persist:"true"`
+	Description shared.Translation `json:"description" table:"translation" alias:"description" on:"description.parent_id = trip.id and description.field = 'description'" embedded:"true" persist:"true"`
 	Scope       string             `json:"scope" db:"scope" lock:"true"`
 	CountryID   string             `json:"country_id" db:"country_id"`
 	Country     shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = trip.country_id and country.field = 'title'" embedded:"true"`
@@ -110,7 +110,6 @@ func (t *Trip) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	t.Scope = "user"
 	if tokenUser.IsAdmin() {
 		t.Scope = "global"
-		t.Title.Translate()
 	}
 
 	t.ItineraryID = uuid.New().String()
@@ -219,26 +218,6 @@ func (t *Trip) Update(request events.APIGatewayProxyRequest) (events.APIGatewayP
 
 	jsonMap["updated_by"] = tokenUser.UserID
 	jsonMap["updated_date"] = time.Now()
-
-	if field, ok := request.QueryStringParameters["translate"]; ok {
-		if field != "title" && field != "description" {
-			return common.APIError(http.StatusBadRequest, errors.New("invalid translation field"))
-		}
-		translation := shared.Translation{}
-		if val, ok := jsonMap[field+".en"]; ok {
-			translation.EN = val.(string)
-		} else if val, ok := jsonMap[field+".pt"]; ok {
-			translation.PT = val.(string)
-		} else if val, ok := jsonMap[field+".es"]; ok {
-			translation.ES = val.(string)
-		}
-		if !translation.IsEmpty() {
-			translation.Translate()
-			jsonMap[field+".en"] = translation.EN
-			jsonMap[field+".es"] = translation.ES
-			jsonMap[field+".pt"] = translation.PT
-		}
-	}
 
 	tx, err := session.Begin()
 	if err != nil {

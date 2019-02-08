@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/feedmytrip/api/common"
@@ -14,10 +15,14 @@ import (
 //User represents a user in the system
 type User struct {
 	ID              string             `json:"id" db:"id" lock:"true"`
-	Active          bool               `json:"active" db:"active"`
+	Active          bool               `json:"active" db:"active" lock:"true"`
+	FirstName       string             `json:"first_name" db:"first_name" lock:"true" filter:"true"`
+	LastName        string             `json:"last_name" db:"last_name" lock:"true" filter:"true"`
+	Group           string             `json:"group" db:"group" lock:"true" filter:"true"`
+	Username        string             `json:"username" db:"username" lock:"true" filter:"true"`
+	Email           string             `json:"email" db:"email" lock:"true" filter:"true"`
+	LanguageCode    string             `json:"language_code" db:"language_code" lock:"true"`
 	PrincipalTripID string             `json:"principal_trip_id" db:"principal_trip_id"`
-	FirstName       string             `json:"first_name" db:"first_name"`
-	LastName        string             `json:"last_name" db:"last_name"`
 	ImagePath       string             `json:"image_path" db:"image_path"`
 	CountryID       string             `json:"country_id" db:"country_id"`
 	Country         shared.Translation `json:"country" table:"translation" alias:"country" on:"country.parent_id = user.country_id and country.field = 'title'" embedded:"true"`
@@ -26,6 +31,12 @@ type User struct {
 	CityID          string             `json:"city_id" db:"city_id"`
 	City            shared.Translation `json:"city" table:"translation" alias:"city" on:"city.parent_id = user.city_id and city.field = 'title'" embedded:"true"`
 	AboutMe         string             `json:"about_me" db:"about_me"`
+	CreatedBy       string             `json:"created_by" db:"created_by" lock:"true"`
+	CreatedDate     time.Time          `json:"created_date" db:"created_date" lock:"true"`
+	UpdatedBy       string             `json:"updated_by" db:"updated_by"`
+	UpdatedDate     time.Time          `json:"updated_date" db:"updated_date"`
+	CreatedUser     shared.User        `json:"created_user" table:"user" alias:"created_user" on:"created_user.id = user.created_by" embedded:"true"`
+	UpdatedUser     shared.User        `json:"updated_user" table:"user" alias:"updated_user" on:"updated_user.id = user.updated_by" embedded:"true"`
 }
 
 //GetAll returns all users available in the database
@@ -60,6 +71,10 @@ func (u *User) SaveNew(request events.APIGatewayProxyRequest) (events.APIGateway
 	}
 
 	u.Active = true
+	u.CreatedBy = tokenUser.UserID
+	u.CreatedDate = time.Now()
+	u.UpdatedBy = tokenUser.UserID
+	u.UpdatedDate = time.Now()
 
 	conn, err := db.Connect()
 	if err != nil {

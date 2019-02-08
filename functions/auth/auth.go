@@ -21,6 +21,11 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		case "GET":
 			return authentication.Refresh(req)
 		}
+	case "/auth/register":
+		switch req.HTTPMethod {
+		case "POST":
+			return authentication.Register(req)
+		}
 	}
 
 	return events.APIGatewayProxyResponse{

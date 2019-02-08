@@ -13,11 +13,19 @@ CREATE TABLE `user`
  `principal_trip_id`    varchar(45) NOT NULL ,
  `first_name`           text ,
  `last_name`            text ,
+ `email`                text ,
+ `username`             text ,
+ `group`                varchar(45) ,
+ `language_code`        varchar(45) ,
  `image_path`           text ,
  `country_id`           varchar(45) ,
  `region_id`            varchar(45) ,
  `city_id`              varchar(45) ,
  `about_me`             mediumtext ,
+ `created_by`           varchar(45) NOT NULL ,
+ `created_date`         timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+ `updated_by`           varchar(45) NOT NULL ,
+ `updated_date`         timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ,
 PRIMARY KEY (`id`)
 );
 
@@ -70,7 +78,6 @@ PRIMARY KEY (`id`)
 CREATE TABLE `highlight`
 (
  `id`              varchar(45) NOT NULL ,
- `image_path`      text ,
  `active`          smallint NOT NULL DEFAULT 1 ,
  `schedule_date`   timestamp ,
  `filter`          text ,
@@ -84,6 +91,26 @@ CREATE TABLE `highlight`
  `updated_by`      varchar(45) NOT NULL ,
  `updated_date`    timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ,
 PRIMARY KEY (`id`)
+);
+
+
+
+
+
+
+-- ************************************** `highlight_image`
+
+CREATE TABLE `highlight_image`
+(
+ `id`           varchar(45) NOT NULL ,
+ `highlight_id` varchar(45) NOT NULL ,
+ `path`         text NOT NULL ,
+ `file_name`    text NOT NULL ,
+ `created_by`   varchar(45) NOT NULL ,
+ `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+PRIMARY KEY (`id`, `highlight_id`),
+KEY `fk_highlight` (`highlight_id`),
+CONSTRAINT `FK_317` FOREIGN KEY `fk_highlight` (`highlight_id`) REFERENCES `highlight` (`id`) ON DELETE CASCADE
 );
 
 
