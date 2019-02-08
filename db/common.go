@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	recorsPerPage = 30
+	recorsPerPage = 50
 )
 
 const (

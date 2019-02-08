@@ -401,3 +401,22 @@ func (e *ItineraryEvent) Delete(request events.APIGatewayProxyRequest) (events.A
 
 	return common.APIResponse(nil, http.StatusOK)
 }
+
+func (e *ItineraryEvent) clone(tx *dbr.Tx, tripID, itineraryID, userID string, offset float64) error {
+
+	e.ID = uuid.New().String()
+	e.TripID = tripID
+	e.ItineraryID = itineraryID
+	e.Title.ID = uuid.New().String()
+	e.Title.ParentID = e.ID
+	e.Description.ID = uuid.New().String()
+	e.Description.ParentID = e.ID
+	e.BeginOffset = e.BeginOffset + offset
+	e.CreatedBy = userID
+	e.CreatedDate = time.Now()
+	e.UpdatedBy = userID
+	e.UpdatedDate = time.Now()
+
+	err := db.Insert(tx, db.TableTripItineraryEvent, *e)
+	return err
+}

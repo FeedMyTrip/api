@@ -1,7 +1,7 @@
 -- ****************** SqlDBM: MySQL ******************;
 -- ***************************************************;
 
-DROP TABLE user, translation, highlight, location, event_schedule, event, category, trip_itinerary_event, trip_participant, trip_itinerary, trip_invite, trip;
+-- DROP TABLE user, translation, highlight, location, event_schedule, event, category, trip_itinerary_event, trip_participant, trip_itinerary, trip_invite, trip;
 
 
 -- ************************************** `user`

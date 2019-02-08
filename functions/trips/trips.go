@@ -97,6 +97,18 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		case "POST":
 			return event.Add(req)
 		}
+	case "/trips/{id}/itineraries/{itinerary_id}/append/{append_itinerary_id}":
+		itinerary := trips.Itinerary{}
+		switch req.HTTPMethod {
+		case "POST":
+			return itinerary.Append(req)
+		}
+	case "/trips/{id}/itineraries/{itinerary_id}/swap":
+		itinerary := trips.Itinerary{}
+		switch req.HTTPMethod {
+		case "POST":
+			return itinerary.SwapDay(req)
+		}
 	}
 
 	return events.APIGatewayProxyResponse{
